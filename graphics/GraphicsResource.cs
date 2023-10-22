@@ -3,11 +3,8 @@ using Vortice.Direct3D12;
 namespace graphics;
 
 public record GraphicsResource : IDisposable {
-    public ID3D12Resource NativeResource;
     public ResourceDescription Description;
-    public ulong Width => Description.Width;
-    public int Height => Description.Height;
-    public ulong SizeInBytes => Description.Width * (ulong)Description.Height * Description.DepthOrArraySize;
+    public ID3D12Resource NativeResource;
 
     public GraphicsResource(ID3D12Resource resource) {
         NativeResource = resource;
@@ -23,7 +20,7 @@ public record GraphicsResource : IDisposable {
         var resourceStates = heapType switch {
             HeapType.Upload => ResourceStates.GenericRead,
             HeapType.Readback => ResourceStates.CopyDest,
-            _ => ResourceStates.Common,
+            _ => ResourceStates.Common
         };
 
         var resource = device.NativeDevice.CreateCommittedResource(
@@ -37,6 +34,10 @@ public record GraphicsResource : IDisposable {
         Description = description;
         NativeResource = resource;
     }
+
+    public ulong Width => Description.Width;
+    public int Height => Description.Height;
+    public ulong SizeInBytes => Description.Width * (ulong)Description.Height * Description.DepthOrArraySize;
 
     public void Dispose() {
         NativeResource.Dispose();

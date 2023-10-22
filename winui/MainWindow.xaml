@@ -9,6 +9,5 @@
     mc:Ignorable="d">
     <SwapChainPanel x:Name="SwapChainPanel"
                     HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    />
+                    VerticalAlignment="Stretch" />
 </Window>

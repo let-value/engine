@@ -6,8 +6,8 @@ using Vortice.DXGI;
 namespace shader.SimplePipelineState;
 
 public class SimplePipelineState {
-    private readonly RootSignature RootSignature;
     public readonly PipelineState PipelineState;
+    private readonly RootSignature RootSignature;
 
     public SimplePipelineState(GraphicsDevice device) {
         var rootSignatureFlags = RootSignatureFlags.AllowInputAssemblerInputLayout
@@ -17,11 +17,11 @@ public class SimplePipelineState {
                                  | RootSignatureFlags.DenyAmplificationShaderRootAccess
                                  | RootSignatureFlags.DenyMeshShaderRootAccess;
 
-        RootSignature = new(device, new RootSignatureDescription(rootSignatureFlags));
+        RootSignature = new(device, new(rootSignatureFlags));
 
         var inputElementDescs = new InputLayoutDescription(
-            new("POSITION", 0, Format.R32G32B32_Float, 0, 0),
-            new("COLOR", 0, Format.R32G32B32A32_Float, 12, 0)
+            new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0, 0),
+            new InputElementDescription("COLOR", 0, Format.R32G32B32A32_Float, 12, 0)
         );
 
         var vertexShaderByteCode = Utils.CompileBytecode(DxcShaderStage.Vertex, "Triangle.hlsl", "VSMain");
@@ -42,7 +42,7 @@ public class SimplePipelineState {
             SampleDescription = SampleDescription.Default
         };
 
-        PipelineState = new PipelineState(device, pipelineStateDescription);
+        PipelineState = new(device, pipelineStateDescription);
     }
 
 

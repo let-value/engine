@@ -50,9 +50,7 @@ public class ShaderIncludeHandler(params string[] includeDirectories) : Callback
     }
 
     protected override void DisposeCore(bool disposing) {
-        foreach (var pinnedObject in _sourceFiles.Values) {
-            pinnedObject?.Dispose();
-        }
+        foreach (var pinnedObject in _sourceFiles.Values) pinnedObject?.Dispose();
 
         _sourceFiles.Clear();
     }

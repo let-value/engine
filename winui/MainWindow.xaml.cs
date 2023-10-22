@@ -1,5 +1,4 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
 using rendering;
 using rendering.loop;
 using Vortice.DXGI;
@@ -33,7 +32,7 @@ public sealed partial class MainWindow {
             BackBufferHeight = (int)height,
             BackBufferFormat = Format.R8G8B8A8_UNorm,
             DepthStencilFormat = Format.D32_Float,
-            SyncInterval = 0,
+            SyncInterval = 0
         };
 
         Presenter = SwapChainPanelPresenterFactory.Create(parameters, SwapChainPanel);

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using graphics;
+﻿using graphics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
@@ -10,12 +9,12 @@ using winui.Graphics;
 namespace winui;
 
 public partial class App {
-    private readonly IHost host;
+    private readonly IHost Host;
 
     public App() {
         InitializeComponent();
 
-        host = new HostBuilder()
+        Host = new HostBuilder()
             .ConfigureServices((context, services) => {
                     services
                         .AddEngineCore()
@@ -29,13 +28,13 @@ public partial class App {
     }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args) {
-        await host.StartAsync();
+        await Host.StartAsync();
 
-        var mainWindow = host.Services.GetService<MainWindow>();
+        var mainWindow = Host.Services.GetRequiredService<MainWindow>();
 
-        mainWindow.Closed += async (sender, eventArgs) => {
-            await host.StopAsync();
-            host.Dispose();
+        mainWindow.Closed += async (_, _) => {
+            await Host.StopAsync();
+            Host.Dispose();
         };
 
         mainWindow.Activate();

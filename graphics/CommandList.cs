@@ -15,6 +15,11 @@ public record CommandList : IDisposable {
         );
     }
 
+    public void Dispose() {
+        NativeCommandAllocator.Dispose();
+        NativeCommandList.Dispose();
+    }
+
     public void Close() {
         NativeCommandList.Close();
     }
@@ -22,11 +27,6 @@ public record CommandList : IDisposable {
     public void Reset(PipelineState? pipelineState = null) {
         NativeCommandAllocator.Reset();
         NativeCommandList.Reset(NativeCommandAllocator, pipelineState?.NativePipelineState);
-    }
-
-    public void Dispose() {
-        NativeCommandAllocator.Dispose();
-        NativeCommandList.Dispose();
     }
 }
 

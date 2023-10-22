@@ -1,6 +1,4 @@
-using System.Runtime.CompilerServices;
 using Vortice.Direct3D12;
-using Vortice.DXGI;
 
 namespace graphics;
 

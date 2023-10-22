@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using rendering.loop;
 using shader.SimplePipelineState;
 using Vortice.Direct3D12;
-using Vortice.DXGI;
 using Vortice.Mathematics;
 
 namespace rendering;
@@ -12,13 +11,12 @@ namespace rendering;
 public class RenderScheduler {
     private const int NumThreads = 4;
 
-    private readonly GraphicsDevice Device;
-    private readonly CommandQueue CommandQueue;
-    private readonly CommandListFactory CommandListFactory;
-
     private readonly List<CommandList> BeginCommandLists = new();
-    private readonly List<CommandList> EndCommandLists = new();
+    private readonly CommandListFactory CommandListFactory;
     private readonly List<List<CommandList>> CommandListsPerThread = new();
+
+    private readonly CommandQueue CommandQueue;
+    private readonly List<CommandList> EndCommandLists = new();
 
     private readonly SimplePipelineState SimplePipelineState;
 
@@ -29,11 +27,10 @@ public class RenderScheduler {
         CommandQueue commandQueue,
         CommandListFactory commandListFactory
     ) {
-        Device = device;
         CommandQueue = commandQueue;
         CommandListFactory = commandListFactory;
 
-        SimplePipelineState = new SimplePipelineState(device);
+        SimplePipelineState = new(device);
 
         bufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
         OnBufferingSizeChanged(bufferingOptionsMonitor.CurrentValue);
@@ -41,7 +38,7 @@ public class RenderScheduler {
 
 
     private void OnBufferingSizeChanged(RenderBufferingOptions bufferingOptions) {
-        int newBufferCount = bufferingOptions.BufferCount;
+        var newBufferCount = bufferingOptions.BufferCount;
 
         while (BeginCommandLists.Count < newBufferCount) {
             var newBeginCommandList = CommandListFactory.Create(CommandListType.Direct);
@@ -70,7 +67,7 @@ public class RenderScheduler {
         while (CommandListsPerThread.Count < newBufferCount) {
             var commandListsForThread = new List<CommandList>(NumThreads);
 
-            for (int j = 0; j < NumThreads; j++) {
+            for (var j = 0; j < NumThreads; j++) {
                 var newCommandList = CommandListFactory.Create(CommandListType.Direct);
                 newCommandList.Close();
 
@@ -82,9 +79,7 @@ public class RenderScheduler {
 
         while (CommandListsPerThread.Count > newBufferCount) {
             var lastCommandListsForThread = CommandListsPerThread[^1];
-            foreach (var commandList in lastCommandListsForThread) {
-                commandList.Dispose();
-            }
+            foreach (var commandList in lastCommandListsForThread) commandList.Dispose();
 
             CommandListsPerThread.RemoveAt(CommandListsPerThread.Count - 1);
         }
@@ -158,9 +153,7 @@ public class RenderScheduler {
 
         commandLists[0] = beginCommandList;
 
-        for (var i = 0; i < NumThreads; i++) {
-            commandLists[i + 1] = CommandListsPerThread[backBufferIndex][i];
-        }
+        for (var i = 0; i < NumThreads; i++) commandLists[i + 1] = CommandListsPerThread[backBufferIndex][i];
 
         commandLists[^1] = endCommandList;
 

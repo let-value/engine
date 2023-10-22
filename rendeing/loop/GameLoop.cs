@@ -6,18 +6,18 @@ namespace rendering.loop;
 public delegate void GameLoopHandler(double deltaTime);
 
 public class GameLoop(IOptionsMonitor<GameLoopOptions> optionsMonitor) : IDisposable {
-    private readonly CancellationTokenSource cancellationTokenSource = new();
+    private readonly CancellationTokenSource CancellationTokenSource = new();
 
-    private readonly Stopwatch stopwatch = new();
+    private readonly Stopwatch Stopwatch = new();
 
-    private Thread? thread;
-    private float? updateTime = GetUpdateTime(optionsMonitor.CurrentValue);
+    private Thread? Thread;
+    private float? UpdateTime = GetUpdateTime(optionsMonitor.CurrentValue);
 
-    private IDisposable? optionsListener => optionsMonitor.OnChange(OnOptionsChanged);
+    private IDisposable? OptionsListener => optionsMonitor.OnChange(OnOptionsChanged);
 
     public void Dispose() {
-        cancellationTokenSource.Cancel();
-        optionsListener?.Dispose();
+        CancellationTokenSource.Cancel();
+        OptionsListener?.Dispose();
     }
 
     public event GameLoopHandler OnUpdate = null!;
@@ -27,37 +27,37 @@ public class GameLoop(IOptionsMonitor<GameLoopOptions> optionsMonitor) : IDispos
     }
 
     private void OnOptionsChanged(GameLoopOptions options) {
-        updateTime = GetUpdateTime(options);
+        UpdateTime = GetUpdateTime(options);
     }
 
     public void Start() {
-        thread ??= new(() => {
-            while (!cancellationTokenSource.IsCancellationRequested) {
-                Run();
-            }
+        Thread ??= new(() => {
+            while (!CancellationTokenSource.IsCancellationRequested) Run();
         });
 
 
-        thread.Start();
+        Thread.Start();
     }
 
     public void Stop() {
-        thread?.Join();
+        Thread?.Join();
     }
 
     public void Run() {
-        stopwatch.Stop();
-        var deltaTime = stopwatch.ElapsedMilliseconds;
+        Stopwatch.Stop();
+        var deltaTime = Stopwatch.ElapsedMilliseconds;
 
-        stopwatch.Restart();
+        Stopwatch.Restart();
         OnUpdate.Invoke(deltaTime);
 
-        if (!updateTime.HasValue) return;
+        if (!UpdateTime.HasValue) {
+            return;
+        }
 
-        stopwatch.Stop();
-        var elapsedTime = stopwatch.ElapsedMilliseconds;
-        stopwatch.Start();
-        var delayTime = updateTime - elapsedTime;
+        Stopwatch.Stop();
+        var elapsedTime = Stopwatch.ElapsedMilliseconds;
+        Stopwatch.Start();
+        var delayTime = UpdateTime - elapsedTime;
 
         if (delayTime > 0) {
             Thread.Sleep((int)delayTime);

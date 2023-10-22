@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.Extensions.Options;
-using SharpGen.Runtime;
 using Vortice.Direct3D12;
 using Vortice.Direct3D12.Debug;
 
@@ -44,15 +38,17 @@ public class GraphicsDebugInterface {
     }
 
     public void HandleDeviceLost(GraphicsDevice device) {
-        Result removedReason = device.NativeDevice.DeviceRemovedReason;
+        var removedReason = device.NativeDevice.DeviceRemovedReason;
 
         Debug.WriteLine($"Device removed! Code: {removedReason.Code} Description: {removedReason.Description}");
 
         using var dred = device.NativeDevice.QueryInterfaceOrNull<ID3D12DeviceRemovedExtendedData1>();
 
-        if (dred == null) return;
+        if (dred == null) {
+            return;
+        }
 
-        if (dred.GetAutoBreadcrumbsOutput1(out DredAutoBreadcrumbsOutput1? dredAutoBreadcrumbsOutput).Success) {
+        if (dred.GetAutoBreadcrumbsOutput1(out var dredAutoBreadcrumbsOutput).Success) {
             var currentNode = dredAutoBreadcrumbsOutput.HeadAutoBreadcrumbNode;
             var index = 0;
             while (currentNode != null) {
@@ -75,6 +71,6 @@ public class GraphicsDebugInterface {
             }
         }
 
-        if (dred.GetPageFaultAllocationOutput1(out DredPageFaultOutput1? pageFaultOutput).Success) { }
+        if (dred.GetPageFaultAllocationOutput1(out var pageFaultOutput).Success) { }
     }
 }

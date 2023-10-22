@@ -1,33 +1,31 @@
-using System.Diagnostics;
 using graphics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using rendering.loop;
-using SharpGen.Runtime;
 using Vortice.Direct3D12;
 using Vortice.DXGI;
 
 namespace rendering;
 
 public class SwapChainPresenter : IDisposable {
-    private readonly GraphicsDevice Device;
     private readonly CommandQueue CommandQueue;
-    private readonly DescriptorAllocator RendnerTargetAllocator;
     private readonly DescriptorAllocator DepthStencilAllocator;
-    private readonly IDXGISwapChain3 SwapChain;
+    private readonly GraphicsDevice Device;
+    private readonly ID3D12Fence FrameFence;
+    private readonly AutoResetEvent FrameFenceEvent;
     private readonly RenderScheduler RenderScheduler;
+    private readonly List<RenderTargetView> RenderTargets = new();
+    private readonly DescriptorAllocator RendnerTargetAllocator;
+
+    private readonly SemaphoreSlim ResizeLock = new(1, 1);
+    private readonly IDXGISwapChain3 SwapChain;
+    private int BackBufferIndex;
+    private DepthStencilView DepthStencilBuffer;
+
+    private ulong FrameCount;
     private PresentationParameters Parameters;
 
     private int RenderLatency;
-    private readonly List<RenderTargetView> RenderTargets = new();
-    private DepthStencilView DepthStencilBuffer;
-
-    private readonly SemaphoreSlim ResizeLock = new SemaphoreSlim(1, 1);
-    private readonly ID3D12Fence FrameFence;
-    private readonly AutoResetEvent FrameFenceEvent;
-    private ulong FrameCount;
-    private int FrameIndex;
-    private int BackBufferIndex;
 
     public SwapChainPresenter(
         GraphicsDevice device,
@@ -61,15 +59,28 @@ public class SwapChainPresenter : IDisposable {
         BackBufferIndex = swapChain.CurrentBackBufferIndex;
     }
 
+    public void Dispose() {
+        WaitForGpuCompletion();
+
+        SwapChain.Dispose();
+
+        FrameFence.Dispose();
+        FrameFenceEvent.Dispose();
+
+        DepthStencilBuffer.Dispose();
+
+        foreach (var renderTarget in RenderTargets) renderTarget.Dispose();
+    }
+
     private RenderTargetView CreateRenderTarget(int index) {
         var renderTargetTexture = new Texture(SwapChain.GetBuffer<ID3D12Resource>(index));
 
         var description = new RenderTargetViewDescription {
             ViewDimension = RenderTargetViewDimension.Texture2D,
-            Format = Parameters.BackBufferFormat,
+            Format = Parameters.BackBufferFormat
         };
 
-        return new RenderTargetView(
+        return new(
             Device,
             RendnerTargetAllocator,
             renderTargetTexture,
@@ -78,7 +89,7 @@ public class SwapChainPresenter : IDisposable {
     }
 
     private DepthStencilView CreateDepthStencilBuffer() {
-        var clearValue = new ClearValue(Parameters.DepthStencilFormat, 1.0f, 0);
+        var clearValue = new ClearValue(Parameters.DepthStencilFormat, 1.0f);
 
         var depthStencilTexture = Texture.Create2D(
             Device,
@@ -93,7 +104,7 @@ public class SwapChainPresenter : IDisposable {
 
         var description = new DepthStencilViewDescription {
             ViewDimension = DepthStencilViewDimension.Texture2D,
-            Format = Parameters.DepthStencilFormat,
+            Format = Parameters.DepthStencilFormat
         };
 
         return new(
@@ -124,9 +135,7 @@ public class SwapChainPresenter : IDisposable {
             SwapChainFlags.None
         );
 
-        for (var i = RenderTargets.Count; i < bufferCount; i++) {
-            RenderTargets.Add(CreateRenderTarget(i));
-        }
+        for (var i = RenderTargets.Count; i < bufferCount; i++) RenderTargets.Add(CreateRenderTarget(i));
 
         while (RenderTargets.Count > bufferCount) {
             var last = RenderTargets[^1];
@@ -144,22 +153,18 @@ public class SwapChainPresenter : IDisposable {
 
         Parameters = Parameters with {
             BackBufferWidth = width,
-            BackBufferHeight = height,
+            BackBufferHeight = height
         };
 
         DepthStencilBuffer.Dispose();
         DepthStencilBuffer = CreateDepthStencilBuffer();
 
-        foreach (var renderTarget in RenderTargets) {
-            renderTarget.Dispose();
-        }
+        foreach (var renderTarget in RenderTargets) renderTarget.Dispose();
 
         SwapChain.ResizeBuffers(RenderTargets.Count, width, height, Format.Unknown, SwapChainFlags.None);
         BackBufferIndex = SwapChain.CurrentBackBufferIndex;
 
-        for (var i = 0; i < RenderTargets.Count; i++) {
-            RenderTargets[i] = CreateRenderTarget(i);
-        }
+        for (var i = 0; i < RenderTargets.Count; i++) RenderTargets[i] = CreateRenderTarget(i);
 
 
         ResizeLock.Release();
@@ -191,7 +196,6 @@ public class SwapChainPresenter : IDisposable {
             FrameFenceEvent.WaitOne();
         }
 
-        FrameIndex = (int)(FrameCount % (ulong)RenderLatency);
         BackBufferIndex = SwapChain.CurrentBackBufferIndex;
 
         ResizeLock.Release();
@@ -203,21 +207,6 @@ public class SwapChainPresenter : IDisposable {
         if (FrameFence.CompletedValue < FrameCount) {
             FrameFence.SetEventOnCompletion(FrameCount, FrameFenceEvent);
             FrameFenceEvent.WaitOne();
-        }
-    }
-
-    public void Dispose() {
-        WaitForGpuCompletion();
-
-        SwapChain.Dispose();
-
-        FrameFence.Dispose();
-        FrameFenceEvent.Dispose();
-
-        DepthStencilBuffer.Dispose();
-
-        foreach (var renderTarget in RenderTargets) {
-            renderTarget.Dispose();
         }
     }
 }

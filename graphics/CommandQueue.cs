@@ -13,6 +13,10 @@ public record CommandQueue : IDisposable {
         NativeQueue = device.NativeDevice.CreateCommandQueue(type);
     }
 
+    public void Dispose() {
+        NativeQueue.Dispose();
+    }
+
     public void Execute(params CommandList[] commandLists) {
         if (!commandLists.Any()) {
             return;
@@ -56,10 +60,6 @@ public record CommandQueue : IDisposable {
 
         fenceEvent.WaitOne();
     }
-
-    public void Dispose() {
-        NativeQueue.Dispose();
-    }
 }
 
 public class CommandQueueFactory(GraphicsDevice device) {
@@ -68,7 +68,9 @@ public class CommandQueueFactory(GraphicsDevice device) {
     }
 
     public static CommandQueue Factory(IServiceProvider serviceProvider, object? serviceKey) {
-        if (serviceKey is not CommandListType commandListType) throw new InvalidOperationException();
+        if (serviceKey is not CommandListType commandListType) {
+            throw new InvalidOperationException();
+        }
 
         var factory = serviceProvider.GetRequiredService<CommandQueueFactory>();
         return factory.Create(commandListType);

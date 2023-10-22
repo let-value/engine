@@ -8,6 +8,7 @@ using rendering.loop;
 using SharpGen.Runtime;
 using Vortice.Direct3D12;
 using Vortice.DXGI;
+using ISwapChainPanelNative = Vortice.WinUI.ISwapChainPanelNative;
 
 namespace winui.Graphics;
 
@@ -72,10 +73,10 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
             SwapEffect = SwapEffect.FlipSequential,
             Format = parameters.BackBufferFormat,
             Flags = SwapChainFlags.None,
-            AlphaMode = AlphaMode.Premultiplied,
+            AlphaMode = AlphaMode.Premultiplied
         };
 
-        using var nativePanel = ComObject.As<Vortice.WinUI.ISwapChainPanelNative>(swapChainPanel);
+        using var nativePanel = ComObject.As<ISwapChainPanelNative>(swapChainPanel);
 
         var factory = DXGI.CreateDXGIFactory2<IDXGIFactory2>(debugOptions.Validate);
 
@@ -89,7 +90,7 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
 
         swapChain.MatrixTransform = new() {
             M11 = 1.0f / swapChainPanel.CompositionScaleX,
-            M22 = 1.0f / swapChainPanel.CompositionScaleY,
+            M22 = 1.0f / swapChainPanel.CompositionScaleY
         };
 
         return swapChain;

@@ -97,7 +97,9 @@ public class DescriptorAllocatorFactory(GraphicsDevice device) {
         DescriptorHeapFlags descriptorHeapFlags = default
     ) {
         return (serviceProvider, serviceKey) => {
-            if (serviceKey is not DescriptorHeapType descriptorHeapType) throw new InvalidOperationException();
+            if (serviceKey is not DescriptorHeapType descriptorHeapType) {
+                throw new InvalidOperationException();
+            }
 
             var factory = serviceProvider.GetRequiredService<DescriptorAllocatorFactory>();
             return factory.Create(descriptorHeapType, descriptorCount, descriptorHeapFlags);

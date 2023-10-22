@@ -1,6 +1,5 @@
 ﻿namespace ecs;
 
-public record Entity
-{
+public record Entity {
     private Entity? Parent;
 }
