@@ -11,8 +11,13 @@ public record Texture : GraphicsResource {
 
     public Texture(ID3D12Resource resource) : base(resource) { }
 
-    public Texture(GraphicsDevice device, ResourceDescription description, HeapType heapType) : base(
-        device, description, heapType
+    public Texture(
+        GraphicsDevice device,
+        ResourceDescription description,
+        HeapType heapType,
+        ClearValue? clearValue = null
+    ) : base(
+        device, description, heapType, clearValue
     ) { }
 
     public static Texture Create2D(
@@ -25,7 +30,8 @@ public record Texture : GraphicsResource {
         ushort arraySize = 1,
         int sampleCount = 1,
         int sampleQuality = 0,
-        HeapType heapType = HeapType.Default
+        HeapType heapType = HeapType.Default,
+        ClearValue? clearValue = null
     ) {
         return new(
             device,
@@ -39,7 +45,8 @@ public record Texture : GraphicsResource {
                 sampleQuality,
                 textureFlags
             ),
-            heapType
+            heapType,
+            clearValue
         );
     }
 }

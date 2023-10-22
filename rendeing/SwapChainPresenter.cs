@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using graphics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using rendering.loop;
+using SharpGen.Runtime;
 using Vortice.Direct3D12;
 using Vortice.DXGI;
 
@@ -10,12 +12,13 @@ namespace rendering;
 public class SwapChainPresenter : IDisposable {
     private readonly GraphicsDevice Device;
     private readonly CommandQueue CommandQueue;
-    private readonly DescriptorAllocator Allocator;
+    private readonly DescriptorAllocator RendnerTargetAllocator;
+    private readonly DescriptorAllocator DepthStencilAllocator;
     private readonly IDXGISwapChain3 SwapChain;
     private readonly RenderScheduler RenderScheduler;
     private PresentationParameters Parameters;
 
-    private ulong RenderLatency = 2;
+    private int RenderLatency;
     private readonly List<RenderTargetView> RenderTargets = new();
     private DepthStencilView DepthStencilBuffer;
 
@@ -23,7 +26,7 @@ public class SwapChainPresenter : IDisposable {
     private readonly ID3D12Fence FrameFence;
     private readonly AutoResetEvent FrameFenceEvent;
     private ulong FrameCount;
-    private ulong FrameIndex;
+    private int FrameIndex;
     private int BackBufferIndex;
 
     public SwapChainPresenter(
@@ -31,7 +34,9 @@ public class SwapChainPresenter : IDisposable {
         [FromKeyedServices(CommandListType.Direct)]
         CommandQueue commandQueue,
         [FromKeyedServices(DescriptorHeapType.RenderTargetView)]
-        DescriptorAllocator renderTargetViewAllocator,
+        DescriptorAllocator renderTargetAllocator,
+        [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
+        DescriptorAllocator depthStencilViewAllocator,
         IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
         RenderScheduler renderScheduler,
         PresentationParameters parameters,
@@ -39,7 +44,8 @@ public class SwapChainPresenter : IDisposable {
     ) {
         Device = device;
         CommandQueue = commandQueue;
-        Allocator = renderTargetViewAllocator;
+        RendnerTargetAllocator = renderTargetAllocator;
+        DepthStencilAllocator = depthStencilViewAllocator;
         SwapChain = swapChain;
         RenderScheduler = renderScheduler;
         Parameters = parameters;
@@ -51,6 +57,8 @@ public class SwapChainPresenter : IDisposable {
         OnBufferingSizeChanged(bufferingOptionsMonitor.CurrentValue);
 
         DepthStencilBuffer = CreateDepthStencilBuffer();
+
+        BackBufferIndex = swapChain.CurrentBackBufferIndex;
     }
 
     private RenderTargetView CreateRenderTarget(int index) {
@@ -63,13 +71,15 @@ public class SwapChainPresenter : IDisposable {
 
         return new RenderTargetView(
             Device,
-            Allocator,
+            RendnerTargetAllocator,
             renderTargetTexture,
             description
         );
     }
 
     private DepthStencilView CreateDepthStencilBuffer() {
+        var clearValue = new ClearValue(Parameters.DepthStencilFormat, 1.0f, 0);
+
         var depthStencilTexture = Texture.Create2D(
             Device,
             (uint)Parameters.BackBufferWidth,
@@ -77,13 +87,20 @@ public class SwapChainPresenter : IDisposable {
             Parameters.DepthStencilFormat,
             ResourceFlags.AllowDepthStencil | ResourceFlags.DenyShaderResource,
             1,
-            Parameters.Stereo ? (ushort)2 : (ushort)1
+            Parameters.Stereo ? (ushort)2 : (ushort)1,
+            clearValue: clearValue
         );
+
+        var description = new DepthStencilViewDescription {
+            ViewDimension = DepthStencilViewDimension.Texture2D,
+            Format = Parameters.DepthStencilFormat,
+        };
 
         return new(
             Device,
-            Allocator,
-            depthStencilTexture
+            DepthStencilAllocator,
+            depthStencilTexture,
+            description
         );
     }
 
@@ -92,7 +109,7 @@ public class SwapChainPresenter : IDisposable {
 
         ResizeLock.Wait();
 
-        RenderLatency = (ulong)bufferingOptions.BufferCount;
+        RenderLatency = bufferingOptions.BufferCount;
 
         var bufferCount = bufferingOptions.BufferCount;
         if (bufferCount == RenderTargets.Count) {
@@ -138,6 +155,7 @@ public class SwapChainPresenter : IDisposable {
         }
 
         SwapChain.ResizeBuffers(RenderTargets.Count, width, height, Format.Unknown, SwapChainFlags.None);
+        BackBufferIndex = SwapChain.CurrentBackBufferIndex;
 
         for (var i = 0; i < RenderTargets.Count; i++) {
             RenderTargets[i] = CreateRenderTarget(i);
@@ -150,28 +168,37 @@ public class SwapChainPresenter : IDisposable {
     public void Present() {
         ResizeLock.Wait();
 
-        var currentRenderTarget = RenderTargets[BackBufferIndex];
+        RenderScheduler.Render(BackBufferIndex, RenderTargets[BackBufferIndex], DepthStencilBuffer);
 
-        RenderScheduler.Render(BackBufferIndex, currentRenderTarget, DepthStencilBuffer);
+        try {
+            var result = SwapChain.Present(Parameters.SyncInterval, PresentFlags.None, Parameters.PresentParameters);
+            if (result.Failure) {
+                Device.DebugInterface.HandleDeviceLost(Device);
 
-        SwapChain.Present(Parameters.SyncInterval, PresentFlags.None, Parameters.PresentParameters);
+                return;
+            }
+        }
+        catch {
+            Device.DebugInterface.HandleDeviceLost(Device);
+        }
 
         CommandQueue.NativeQueue.Signal(FrameFence, ++FrameCount);
 
         var gpuFrameCount = FrameFence.CompletedValue;
-        if (FrameCount - gpuFrameCount >= RenderLatency) {
+        var elapsed = (int)(FrameCount - gpuFrameCount);
+        if (elapsed >= RenderLatency) {
             FrameFence.SetEventOnCompletion(gpuFrameCount + 1, FrameFenceEvent);
             FrameFenceEvent.WaitOne();
         }
 
-        FrameIndex = FrameCount % RenderLatency;
+        FrameIndex = (int)(FrameCount % (ulong)RenderLatency);
         BackBufferIndex = SwapChain.CurrentBackBufferIndex;
 
         ResizeLock.Release();
     }
 
     private void WaitForGpuCompletion() {
-        CommandQueue.NativeQueue.Signal(FrameFence, FrameCount);
+        CommandQueue.NativeQueue.Signal(FrameFence, ++FrameCount);
 
         if (FrameFence.CompletedValue < FrameCount) {
             FrameFence.SetEventOnCompletion(FrameCount, FrameFenceEvent);

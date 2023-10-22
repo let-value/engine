@@ -17,7 +17,8 @@ public record GraphicsResource : IDisposable {
     public GraphicsResource(
         GraphicsDevice device,
         ResourceDescription description,
-        HeapType heapType
+        HeapType heapType,
+        ClearValue? clearValue = null
     ) {
         var resourceStates = heapType switch {
             HeapType.Upload => ResourceStates.GenericRead,
@@ -29,7 +30,8 @@ public record GraphicsResource : IDisposable {
             new HeapProperties(heapType),
             HeapFlags.None,
             description,
-            resourceStates
+            resourceStates,
+            clearValue
         );
 
         Description = description;

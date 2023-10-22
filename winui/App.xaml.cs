@@ -15,9 +15,6 @@ public partial class App {
     public App() {
         InitializeComponent();
 
-        Console.WriteLine("Hello World");
-        Debug.WriteLine("Hello debug");
-
         host = new HostBuilder()
             .ConfigureServices((context, services) => {
                     services

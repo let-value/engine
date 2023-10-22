@@ -21,7 +21,7 @@ public sealed partial class MainWindow {
         GameLoop = gameLoop;
         GameLoop.OnUpdate += deltaTime => { Presenter?.Present(); };
 
-        CompositionTarget.Rendering += ((sender, o) => { GameLoop.Run(); });
+        //CompositionTarget.Rendering += ((sender, o) => { GameLoop.Run(); });
     }
 
     private void OnActivated(object sender, RoutedEventArgs e) {
@@ -33,10 +33,11 @@ public sealed partial class MainWindow {
             BackBufferHeight = (int)height,
             BackBufferFormat = Format.R8G8B8A8_UNorm,
             DepthStencilFormat = Format.D32_Float,
+            SyncInterval = 0,
         };
 
         Presenter = SwapChainPanelPresenterFactory.Create(parameters, SwapChainPanel);
 
-        //GameLoop.Start();
+        GameLoop.Start();
     }
 }

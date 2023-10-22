@@ -19,7 +19,9 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
         [FromKeyedServices(CommandListType.Direct)]
         CommandQueue commandQueue,
         [FromKeyedServices(DescriptorHeapType.RenderTargetView)]
-        DescriptorAllocator renderTargetViewAllocator,
+        DescriptorAllocator renderTargetAllocator,
+        [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
+        DescriptorAllocator depthStencilViewAllocator,
         IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
         IOptions<GraphicsDebugOptions> debugOptions,
         RenderScheduler renderScheduler,
@@ -28,7 +30,8 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
     ) : base(
         device,
         commandQueue,
-        renderTargetViewAllocator,
+        renderTargetAllocator,
+        depthStencilViewAllocator,
         bufferingOptionsMonitor,
         renderScheduler,
         parameters,
@@ -99,6 +102,8 @@ public class SwapChainPanelPresenterFactory(
     CommandQueue commandQueue,
     [FromKeyedServices(DescriptorHeapType.RenderTargetView)]
     DescriptorAllocator renderTargetViewAllocator,
+    [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
+    DescriptorAllocator depthStencilViewAllocator,
     IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
     IOptions<GraphicsDebugOptions> debugOptions,
     RenderScheduler renderScheduler
@@ -111,6 +116,7 @@ public class SwapChainPanelPresenterFactory(
             device,
             commandQueue,
             renderTargetViewAllocator,
+            depthStencilViewAllocator,
             bufferingOptionsMonitor,
             debugOptions,
             renderScheduler,

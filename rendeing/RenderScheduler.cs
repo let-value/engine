@@ -16,8 +16,8 @@ public class RenderScheduler {
     private readonly CommandQueue CommandQueue;
     private readonly CommandListFactory CommandListFactory;
 
-    private readonly CommandList BeginCommandList;
-    private readonly CommandList EndCommandList;
+    private readonly List<CommandList> BeginCommandLists = new();
+    private readonly List<CommandList> EndCommandLists = new();
     private readonly List<List<CommandList>> CommandListsPerThread = new();
 
     private readonly SimplePipelineState SimplePipelineState;
@@ -35,12 +35,6 @@ public class RenderScheduler {
 
         SimplePipelineState = new SimplePipelineState(device);
 
-        BeginCommandList = CommandListFactory.Create(CommandListType.Direct);
-        BeginCommandList.Close();
-
-        EndCommandList = CommandListFactory.Create(CommandListType.Direct);
-        EndCommandList.Close();
-
         bufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
         OnBufferingSizeChanged(bufferingOptionsMonitor.CurrentValue);
     }
@@ -48,6 +42,30 @@ public class RenderScheduler {
 
     private void OnBufferingSizeChanged(RenderBufferingOptions bufferingOptions) {
         int newBufferCount = bufferingOptions.BufferCount;
+
+        while (BeginCommandLists.Count < newBufferCount) {
+            var newBeginCommandList = CommandListFactory.Create(CommandListType.Direct);
+            newBeginCommandList.Close();
+
+            BeginCommandLists.Add(newBeginCommandList);
+        }
+
+        while (BeginCommandLists.Count > newBufferCount) {
+            BeginCommandLists[^1].Dispose();
+            BeginCommandLists.RemoveAt(BeginCommandLists.Count - 1);
+        }
+
+        while (EndCommandLists.Count < newBufferCount) {
+            var newEndCommandList = CommandListFactory.Create(CommandListType.Direct);
+            newEndCommandList.Close();
+
+            EndCommandLists.Add(newEndCommandList);
+        }
+
+        while (EndCommandLists.Count > newBufferCount) {
+            EndCommandLists[^1].Dispose();
+            EndCommandLists.RemoveAt(EndCommandLists.Count - 1);
+        }
 
         while (CommandListsPerThread.Count < newBufferCount) {
             var commandListsForThread = new List<CommandList>(NumThreads);
@@ -73,23 +91,32 @@ public class RenderScheduler {
     }
 
     public void Render(int backBufferIndex, RenderTargetView renderTargetView, DepthStencilView depthStencilView) {
-        BeginCommandList.Reset(SimplePipelineState.PipelineState);
+        var beginCommandList = BeginCommandLists[backBufferIndex];
+        var endCommandList = EndCommandLists[backBufferIndex];
 
-        BeginCommandList.NativeCommandList.ResourceBarrierTransition(
+        beginCommandList.Reset(SimplePipelineState.PipelineState);
+
+        beginCommandList.NativeCommandList.ResourceBarrierTransition(
             renderTargetView.Resource.NativeResource,
             ResourceStates.Present,
             ResourceStates.RenderTarget
         );
 
-        BeginCommandList.NativeCommandList.OMSetRenderTargets(
+        beginCommandList.NativeCommandList.ResourceBarrierTransition(
+            depthStencilView.Resource.NativeResource,
+            ResourceStates.Present,
+            ResourceStates.DepthWrite
+        );
+
+        beginCommandList.NativeCommandList.OMSetRenderTargets(
             renderTargetView.CpuDescriptor,
             depthStencilView.CpuDescriptor
         );
-        BeginCommandList.NativeCommandList.ClearRenderTargetView(
+        beginCommandList.NativeCommandList.ClearRenderTargetView(
             renderTargetView.CpuDescriptor,
             Colors.CornflowerBlue
         );
-        BeginCommandList.NativeCommandList.ClearDepthStencilView(
+        beginCommandList.NativeCommandList.ClearDepthStencilView(
             depthStencilView.CpuDescriptor,
             ClearFlags.Depth | ClearFlags.Stencil,
             1.0f,
@@ -97,7 +124,7 @@ public class RenderScheduler {
         );
 
 
-        BeginCommandList.Close();
+        beginCommandList.Close();
 
         Parallel.For(0, NumThreads, threadIndex => {
             var commandList = CommandListsPerThread[backBufferIndex][threadIndex];
@@ -111,20 +138,32 @@ public class RenderScheduler {
             commandList.Close();
         });
 
-        EndCommandList.Reset(SimplePipelineState.PipelineState);
+        endCommandList.Reset(SimplePipelineState.PipelineState);
 
-        EndCommandList.NativeCommandList.ResourceBarrierTransition(
+        endCommandList.NativeCommandList.ResourceBarrierTransition(
             renderTargetView.Resource.NativeResource,
             ResourceStates.RenderTarget,
             ResourceStates.Present
         );
 
-        CommandQueue.ExecuteSimple(BeginCommandList);
+        endCommandList.NativeCommandList.ResourceBarrierTransition(
+            depthStencilView.Resource.NativeResource,
+            ResourceStates.DepthWrite,
+            ResourceStates.Present
+        );
 
-        foreach (var commandListForThread in CommandListsPerThread) {
-            CommandQueue.ExecuteSimple(commandListForThread[backBufferIndex]);
+        endCommandList.NativeCommandList.Close();
+
+        var commandLists = new CommandList[NumThreads + 2];
+
+        commandLists[0] = beginCommandList;
+
+        for (var i = 0; i < NumThreads; i++) {
+            commandLists[i + 1] = CommandListsPerThread[backBufferIndex][i];
         }
 
-        CommandQueue.ExecuteSimple(EndCommandList);
+        commandLists[^1] = endCommandList;
+
+        CommandQueue.ExecuteSimple(commandLists);
     }
 }
