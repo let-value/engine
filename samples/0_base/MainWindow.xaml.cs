@@ -7,7 +7,7 @@ using winui;
 
 namespace sample;
 
-public partial class MainWindow {
+public partial class MainWindow : IDisposable {
     private readonly GameLoop GameLoop;
     private readonly SwapChainPanelPresenterFactory SwapChainPanelPresenterFactory;
     private SwapChainPanelPresenter? Presenter;
@@ -22,7 +22,10 @@ public partial class MainWindow {
         GameLoop = gameLoop;
         GameLoop.OnUpdate += deltaTime => { Presenter?.Present(); };
 
-        Closed += (_, _) => lifeTime.StopApplication();
+        Closed += (_, _) => {
+            this.Dispose();
+            lifeTime.StopApplication();
+        };
 
         //CompositionTarget.Rendering += ((sender, o) => { GameLoop.Run(); });
     }
@@ -42,5 +45,10 @@ public partial class MainWindow {
         Presenter = SwapChainPanelPresenterFactory.Create(parameters, SwapChainPanel);
 
         GameLoop.Start();
+    }
+
+    public void Dispose() {
+        GameLoop.Dispose();
+        Presenter?.Dispose();
     }
 }
