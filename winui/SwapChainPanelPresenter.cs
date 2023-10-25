@@ -10,7 +10,7 @@ using Vortice.Direct3D12;
 using Vortice.DXGI;
 using ISwapChainPanelNative = Vortice.WinUI.ISwapChainPanelNative;
 
-namespace winui.Graphics;
+namespace winui;
 
 public class SwapChainPanelPresenter : SwapChainPresenter {
     private readonly SwapChainPanel SwapChainPanel;

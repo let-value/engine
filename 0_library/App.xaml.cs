@@ -4,11 +4,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using rendering;
 using rendering.loop;
-using winui.Graphics;
+using winui;
 
-namespace winui;
+namespace sample;
 
-public partial class App {
+public partial class App : Application {
     private readonly IHost Host;
 
     public App() {

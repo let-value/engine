@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\0_base\Sample.targets" />
+	<ItemGroup>
+	  <Manifest Remove="app.manifest" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\0_base\0_base.csproj" />
+	</ItemGroup>
+</Project>

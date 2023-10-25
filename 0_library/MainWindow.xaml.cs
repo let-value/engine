@@ -2,11 +2,11 @@ using Microsoft.UI.Xaml;
 using rendering;
 using rendering.loop;
 using Vortice.DXGI;
-using winui.Graphics;
+using winui;
 
-namespace winui;
+namespace sample;
 
-public sealed partial class MainWindow {
+public partial class MainWindow {
     private readonly GameLoop GameLoop;
     private readonly SwapChainPanelPresenterFactory SwapChainPanelPresenterFactory;
     private SwapChainPanelPresenter? Presenter;
@@ -32,7 +32,7 @@ public sealed partial class MainWindow {
             BackBufferHeight = (int)height,
             BackBufferFormat = Format.R8G8B8A8_UNorm,
             DepthStencilFormat = Format.D32_Float,
-            SyncInterval = 0
+            SyncInterval = 0,
         };
 
         Presenter = SwapChainPanelPresenterFactory.Create(parameters, SwapChainPanel);
