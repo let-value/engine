@@ -8,8 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\graphics\graphics.csproj"/>
-        <ProjectReference Include="..\shader\shader.csproj"/>
+        <ProjectReference Include="..\ecs\ecs.csproj" />
+        <ProjectReference Include="..\graphics\graphics.csproj" />
+        <ProjectReference Include="..\shader\shader.csproj" />
     </ItemGroup>
 
 </Project>

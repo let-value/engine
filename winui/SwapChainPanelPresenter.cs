@@ -25,7 +25,7 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
         DescriptorAllocator depthStencilViewAllocator,
         IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
         IOptions<GraphicsDebugOptions> debugOptions,
-        RenderScheduler renderScheduler,
+        FrameRenderer frameRenderer,
         PresentationParameters parameters,
         SwapChainPanel swapChainPanel
     ) : base(
@@ -34,7 +34,7 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
         renderTargetAllocator,
         depthStencilViewAllocator,
         bufferingOptionsMonitor,
-        renderScheduler,
+        frameRenderer,
         parameters,
         CreateSwapChain(
             commandQueue,
@@ -107,7 +107,7 @@ public class SwapChainPanelPresenterFactory(
     DescriptorAllocator depthStencilViewAllocator,
     IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
     IOptions<GraphicsDebugOptions> debugOptions,
-    RenderScheduler renderScheduler
+    FrameRenderer frameRenderer
 ) {
     public SwapChainPanelPresenter Create(
         PresentationParameters parameters,
@@ -120,7 +120,7 @@ public class SwapChainPanelPresenterFactory(
             depthStencilViewAllocator,
             bufferingOptionsMonitor,
             debugOptions,
-            renderScheduler,
+            frameRenderer,
             parameters,
             swapChainPanel
         );

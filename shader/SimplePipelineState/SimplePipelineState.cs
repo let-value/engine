@@ -7,7 +7,7 @@ namespace shader.SimplePipelineState;
 
 public class SimplePipelineState {
     public readonly PipelineState PipelineState;
-    private readonly RootSignature RootSignature;
+    public readonly RootSignature RootSignature;
 
     public SimplePipelineState(GraphicsDevice device) {
         var rootSignatureFlags = RootSignatureFlags.AllowInputAssemblerInputLayout
@@ -38,7 +38,7 @@ public class SimplePipelineState {
             BlendState = BlendDescription.Opaque,
             DepthStencilState = DepthStencilDescription.Default,
             RenderTargetFormats = new[] { Format.R8G8B8A8_UNorm },
-            DepthStencilFormat = Format.Unknown,
+            DepthStencilFormat = Format.D32_Float,
             SampleDescription = SampleDescription.Default
         };
 

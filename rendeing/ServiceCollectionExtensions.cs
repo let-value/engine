@@ -6,8 +6,9 @@ namespace rendering;
 public static class ServiceCollectionExtensions {
     public static IServiceCollection AddEngineRendering(this IServiceCollection services) {
         services
+            .AddSingleton<IRenderPipeline, NoopRenderPipeline>()
             .AddSingleton<GameLoop>()
-            .AddSingleton<RenderScheduler>();
+            .AddSingleton<FrameRenderer>();
 
         services.Configure<GameLoopOptions>(options => { options.UpdateRate = 60; });
         services.Configure<RenderBufferingOptions>(options => { options.BufferCount = 2; });

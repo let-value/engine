@@ -1,4 +1,4 @@
 ﻿using sample;
 
-var host = SampleHost.CreateHost().Build();
+var host = TriangleHost.CreateHost().Build();
 await host.StartAsync();

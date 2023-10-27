@@ -1,9 +1,11 @@
+using System.Drawing;
 using graphics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using rendering.loop;
 using Vortice.Direct3D12;
 using Vortice.DXGI;
+using Vortice.Mathematics;
 
 namespace rendering;
 
@@ -13,9 +15,9 @@ public class SwapChainPresenter : IDisposable {
     private readonly GraphicsDevice Device;
     private readonly ID3D12Fence FrameFence;
     private readonly AutoResetEvent FrameFenceEvent;
-    private readonly RenderScheduler RenderScheduler;
+    private readonly FrameRenderer FrameRenderer;
     private readonly List<RenderTargetView> RenderTargets = new();
-    private readonly DescriptorAllocator RendnerTargetAllocator;
+    private readonly DescriptorAllocator RenderTargetAllocator;
 
     private readonly SemaphoreSlim ResizeLock = new(1, 1);
     private readonly IDXGISwapChain3 SwapChain;
@@ -24,6 +26,9 @@ public class SwapChainPresenter : IDisposable {
 
     private ulong FrameCount;
     private PresentationParameters Parameters;
+
+    private Viewport Viewport;
+    private Rectangle ScissorRect;
 
     private int RenderLatency;
 
@@ -36,16 +41,16 @@ public class SwapChainPresenter : IDisposable {
         [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
         DescriptorAllocator depthStencilViewAllocator,
         IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
-        RenderScheduler renderScheduler,
+        FrameRenderer frameRenderer,
         PresentationParameters parameters,
         IDXGISwapChain3 swapChain
     ) {
         Device = device;
         CommandQueue = commandQueue;
-        RendnerTargetAllocator = renderTargetAllocator;
+        RenderTargetAllocator = renderTargetAllocator;
         DepthStencilAllocator = depthStencilViewAllocator;
         SwapChain = swapChain;
-        RenderScheduler = renderScheduler;
+        FrameRenderer = frameRenderer;
         Parameters = parameters;
 
         FrameFence = Device.NativeDevice.CreateFence();
@@ -82,7 +87,7 @@ public class SwapChainPresenter : IDisposable {
 
         return new(
             Device,
-            RendnerTargetAllocator,
+            RenderTargetAllocator,
             renderTargetTexture,
             description
         );
@@ -143,6 +148,9 @@ public class SwapChainPresenter : IDisposable {
             RenderTargets.RemoveAt(RenderTargets.Count - 1);
         }
 
+        Viewport = new(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
+        ScissorRect = new(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
+
         ResizeLock.Release();
     }
 
@@ -173,7 +181,13 @@ public class SwapChainPresenter : IDisposable {
     public void Present() {
         ResizeLock.Wait();
 
-        RenderScheduler.Render(BackBufferIndex, RenderTargets[BackBufferIndex], DepthStencilBuffer);
+        FrameRenderer.Render(
+            BackBufferIndex,
+            RenderTargets[BackBufferIndex],
+            DepthStencilBuffer,
+            Viewport,
+            ScissorRect
+        );
 
         try {
             var result = SwapChain.Present(Parameters.SyncInterval, PresentFlags.None, Parameters.PresentParameters);
