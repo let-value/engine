@@ -174,6 +174,8 @@ public class SwapChainPresenter : IDisposable {
 
         for (var i = 0; i < RenderTargets.Count; i++) RenderTargets[i] = CreateRenderTarget(i);
 
+        Viewport = new(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
+        ScissorRect = new(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
 
         ResizeLock.Release();
     }

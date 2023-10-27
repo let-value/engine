@@ -26,7 +26,7 @@ public class TriangleRenderingPipeline : IRenderPipeline {
         CommandList = commandListFactory.Create(CommandListType.Direct, SimplePipelineState.PipelineState);
         CommandList.Close();
 
-        var scale = 0.5f;
+        var scale = 0.6f;
 
         var triangleVertices = new[] {
             new VertexPositionColor(new(0f, scale, 0.0f), new(1.0f, 0.0f, 0.0f, 1.0f)),
