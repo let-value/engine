@@ -1,6 +1,5 @@
 using System.Drawing;
 using graphics;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using rendering.loop;
 using Vortice.Direct3D12;
@@ -10,71 +9,54 @@ using Vortice.Mathematics;
 namespace rendering;
 
 public class SwapChainPresenter : IDisposable {
-    private readonly CommandQueue CommandQueue;
-    private readonly DescriptorAllocator DepthStencilAllocator;
-    private readonly GraphicsDevice Device;
-    private readonly ID3D12Fence FrameFence;
-    private readonly AutoResetEvent FrameFenceEvent;
+    private readonly PresenterContext Context;
+    private PresentationParameters Parameters;
+    private int RenderLatency;
+
+    private readonly PresenterSynchronizationsContext SynchronizationContext;
+
+    private readonly IDXGISwapChain3 SwapChain;
     private readonly FrameRenderer FrameRenderer;
     private readonly List<RenderTargetView> RenderTargets = new();
-    private readonly DescriptorAllocator RenderTargetAllocator;
+    private readonly List<FrameContext> FrameContexts = new();
 
-    private readonly SemaphoreSlim ResizeLock = new(1, 1);
-    private readonly IDXGISwapChain3 SwapChain;
     private int BackBufferIndex;
     private DepthStencilView DepthStencilBuffer;
 
-    private ulong FrameCount;
-    private PresentationParameters Parameters;
-
-    private Viewport Viewport;
-    private Rectangle ScissorRect;
-
-    private int RenderLatency;
-
     public SwapChainPresenter(
-        GraphicsDevice device,
-        [FromKeyedServices(CommandListType.Direct)]
-        CommandQueue commandQueue,
-        [FromKeyedServices(DescriptorHeapType.RenderTargetView)]
-        DescriptorAllocator renderTargetAllocator,
-        [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
-        DescriptorAllocator depthStencilViewAllocator,
-        IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
+        PresenterContext context,
         FrameRenderer frameRenderer,
         PresentationParameters parameters,
         IDXGISwapChain3 swapChain
     ) {
-        Device = device;
-        CommandQueue = commandQueue;
-        RenderTargetAllocator = renderTargetAllocator;
-        DepthStencilAllocator = depthStencilViewAllocator;
+        Context = context;
+        SynchronizationContext = new(context);
         SwapChain = swapChain;
         FrameRenderer = frameRenderer;
         Parameters = parameters;
 
-        FrameFence = Device.NativeDevice.CreateFence();
-        FrameFenceEvent = new(false);
-
-        bufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
-        OnBufferingSizeChanged(bufferingOptionsMonitor.CurrentValue);
-
         DepthStencilBuffer = CreateDepthStencilBuffer();
 
-        BackBufferIndex = swapChain.CurrentBackBufferIndex;
+        Context.BufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
+        OnBufferingSizeChanged(Context.BufferingOptionsMonitor.CurrentValue);
     }
 
     public void Dispose() {
-        WaitForGpuCompletion();
+        SynchronizationContext.WaitForGpuCompletion();
 
+        SynchronizationContext.Dispose();
         SwapChain.Dispose();
 
-        FrameFence.Dispose();
-        FrameFenceEvent.Dispose();
-
         DepthStencilBuffer.Dispose();
+        DisposeRenderTargets();
+    }
 
-        foreach (var renderTarget in RenderTargets) renderTarget.Dispose();
+    public void DisposeRenderTargets() {
+        foreach (var renderTarget in RenderTargets) {
+            renderTarget.Dispose();
+        }
+
+        RenderTargets.Clear();
     }
 
     private RenderTargetView CreateRenderTarget(int index) {
@@ -86,8 +68,8 @@ public class SwapChainPresenter : IDisposable {
         };
 
         return new(
-            Device,
-            RenderTargetAllocator,
+            Context.Device,
+            Context.RenderTargetAllocator,
             renderTargetTexture,
             description
         );
@@ -97,7 +79,7 @@ public class SwapChainPresenter : IDisposable {
         var clearValue = new ClearValue(Parameters.DepthStencilFormat, 1.0f);
 
         var depthStencilTexture = Texture.Create2D(
-            Device,
+            Context.Device,
             (uint)Parameters.BackBufferWidth,
             (uint)Parameters.BackBufferHeight,
             Parameters.DepthStencilFormat,
@@ -113,116 +95,116 @@ public class SwapChainPresenter : IDisposable {
         };
 
         return new(
-            Device,
-            DepthStencilAllocator,
+            Context.Device,
+            Context.DepthStencilAllocator,
             depthStencilTexture,
             description
         );
     }
 
     private void OnBufferingSizeChanged(RenderBufferingOptions bufferingOptions) {
-        WaitForGpuCompletion();
+        SynchronizationContext.WaitForGpuCompletion();
+        SynchronizationContext.Lock();
 
-        ResizeLock.Wait();
-
-        RenderLatency = bufferingOptions.BufferCount;
-
-        var bufferCount = bufferingOptions.BufferCount;
-        if (bufferCount == RenderTargets.Count) {
+        if (RenderLatency == bufferingOptions.BufferCount) {
             return;
         }
 
-        SwapChain.ResizeBuffers(
-            bufferCount,
-            Parameters.BackBufferWidth,
-            Parameters.BackBufferHeight,
-            Parameters.BackBufferFormat,
-            SwapChainFlags.None
-        );
+        RenderLatency = bufferingOptions.BufferCount;
 
-        for (var i = RenderTargets.Count; i < bufferCount; i++) RenderTargets.Add(CreateRenderTarget(i));
+        UpdateRenderTargets();
+        UpdateFrameContexts();
 
-        while (RenderTargets.Count > bufferCount) {
-            var last = RenderTargets[^1];
-            last.Dispose();
-            RenderTargets.RemoveAt(RenderTargets.Count - 1);
-        }
-
-        Viewport = new(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
-        ScissorRect = new(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
-
-        ResizeLock.Release();
+        SynchronizationContext.Release();
     }
 
     protected void OnResize(int width, int height) {
-        WaitForGpuCompletion();
-
-        ResizeLock.Wait();
+        SynchronizationContext.WaitForGpuCompletion();
+        SynchronizationContext.Lock();
 
         Parameters = Parameters with {
             BackBufferWidth = width,
             BackBufferHeight = height
         };
 
+        UpdateDepthStencilBuffer();
+        UpdateRenderTargets(true);
+        UpdateFrameContexts();
+
+        SynchronizationContext.Release();
+    }
+
+    private void UpdateRenderTargets(bool fromScratch = false) {
+        if (fromScratch) {
+            DisposeRenderTargets();
+        }
+
+        SwapChain.ResizeBuffers(
+            RenderLatency,
+            Parameters.BackBufferWidth,
+            Parameters.BackBufferHeight,
+            Parameters.BackBufferFormat,
+            SwapChainFlags.None
+        );
+
+        for (var i = RenderTargets.Count; i < RenderLatency; i++) {
+            RenderTargets.Add(CreateRenderTarget(i));
+        }
+
+        while (RenderTargets.Count > RenderLatency) {
+            var last = RenderTargets[^1];
+            last.Dispose();
+            RenderTargets.RemoveAt(RenderTargets.Count - 1);
+        }
+
+        BackBufferIndex = SwapChain.CurrentBackBufferIndex;
+    }
+
+    private void UpdateDepthStencilBuffer() {
         DepthStencilBuffer.Dispose();
         DepthStencilBuffer = CreateDepthStencilBuffer();
+    }
 
-        foreach (var renderTarget in RenderTargets) renderTarget.Dispose();
+    private void UpdateFrameContexts() {
+        var viewport = new Viewport(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
+        var scissorsRect = new Rectangle(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
 
-        SwapChain.ResizeBuffers(RenderTargets.Count, width, height, Format.Unknown, SwapChainFlags.None);
-        BackBufferIndex = SwapChain.CurrentBackBufferIndex;
+        FrameContexts.Clear();
 
-        for (var i = 0; i < RenderTargets.Count; i++) RenderTargets[i] = CreateRenderTarget(i);
-
-        Viewport = new(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
-        ScissorRect = new(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
-
-        ResizeLock.Release();
+        for (var i = FrameContexts.Count; i < RenderLatency; i++) {
+            FrameContexts.Add(new(
+                i,
+                RenderTargets[i],
+                DepthStencilBuffer,
+                viewport,
+                scissorsRect
+            ));
+        }
     }
 
     public void Present() {
-        ResizeLock.Wait();
+        SynchronizationContext.Lock();
 
-        FrameRenderer.Render(
-            BackBufferIndex,
-            RenderTargets[BackBufferIndex],
-            DepthStencilBuffer,
-            Viewport,
-            ScissorRect
-        );
+        var frameContext = FrameContexts[BackBufferIndex];
+
+        FrameRenderer.Render(frameContext);
 
         try {
             var result = SwapChain.Present(Parameters.SyncInterval, PresentFlags.None, Parameters.PresentParameters);
             if (result.Failure) {
-                Device.DebugInterface.HandleDeviceLost(Device);
+                Context.Device.DebugInterface.HandleDeviceLost(Context.Device);
 
                 return;
             }
         }
         catch {
-            Device.DebugInterface.HandleDeviceLost(Device);
+            Context.Device.DebugInterface.HandleDeviceLost(Context.Device);
         }
 
-        CommandQueue.NativeQueue.Signal(FrameFence, ++FrameCount);
-
-        var gpuFrameCount = FrameFence.CompletedValue;
-        var elapsed = (int)(FrameCount - gpuFrameCount);
-        if (elapsed >= RenderLatency) {
-            FrameFence.SetEventOnCompletion(gpuFrameCount + 1, FrameFenceEvent);
-            FrameFenceEvent.WaitOne();
-        }
+        SynchronizationContext.WaitForFrameCompletion(RenderLatency);
 
         BackBufferIndex = SwapChain.CurrentBackBufferIndex;
 
-        ResizeLock.Release();
-    }
-
-    private void WaitForGpuCompletion() {
-        CommandQueue.NativeQueue.Signal(FrameFence, ++FrameCount);
-
-        if (FrameFence.CompletedValue < FrameCount) {
-            FrameFence.SetEventOnCompletion(FrameCount, FrameFenceEvent);
-            FrameFenceEvent.WaitOne();
-        }
+        SynchronizationContext.Release();
     }
 }

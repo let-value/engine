@@ -1,12 +1,7 @@
-﻿using graphics;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using rendering;
-using rendering.loop;
 using SharpGen.Runtime;
-using Vortice.Direct3D12;
 using Vortice.DXGI;
 using ISwapChainPanelNative = Vortice.WinUI.ISwapChainPanelNative;
 
@@ -16,31 +11,17 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
     private readonly SwapChainPanel SwapChainPanel;
 
     public SwapChainPanelPresenter(
-        GraphicsDevice device,
-        [FromKeyedServices(CommandListType.Direct)]
-        CommandQueue commandQueue,
-        [FromKeyedServices(DescriptorHeapType.RenderTargetView)]
-        DescriptorAllocator renderTargetAllocator,
-        [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
-        DescriptorAllocator depthStencilViewAllocator,
-        IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
-        IOptions<GraphicsDebugOptions> debugOptions,
+        PresenterContext context,
         FrameRenderer frameRenderer,
         PresentationParameters parameters,
         SwapChainPanel swapChainPanel
     ) : base(
-        device,
-        commandQueue,
-        renderTargetAllocator,
-        depthStencilViewAllocator,
-        bufferingOptionsMonitor,
+        context,
         frameRenderer,
         parameters,
         CreateSwapChain(
-            commandQueue,
+            context,
             parameters,
-            bufferingOptionsMonitor.CurrentValue,
-            debugOptions.Value,
             swapChainPanel
         )
     ) {
@@ -56,12 +37,13 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
     }
 
     private static IDXGISwapChain3 CreateSwapChain(
-        CommandQueue commandQueue,
+        PresenterContext context,
         PresentationParameters parameters,
-        RenderBufferingOptions bufferingOptions,
-        GraphicsDebugOptions debugOptions,
         SwapChainPanel swapChainPanel
     ) {
+        var bufferingOptions = context.BufferingOptionsMonitor.CurrentValue;
+        var debugOptions = context.DebugOptions.Value;
+
         var swapChainDescription = new SwapChainDescription1 {
             Width = parameters.BackBufferWidth,
             Height = parameters.BackBufferHeight,
@@ -81,7 +63,7 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
         var factory = DXGI.CreateDXGIFactory2<IDXGIFactory2>(debugOptions.Validate);
 
         using var tempSwapChain = factory.CreateSwapChainForComposition(
-            commandQueue.NativeQueue,
+            context.CommandQueue.NativeQueue,
             swapChainDescription
         );
 
@@ -98,15 +80,7 @@ public class SwapChainPanelPresenter : SwapChainPresenter {
 }
 
 public class SwapChainPanelPresenterFactory(
-    GraphicsDevice device,
-    [FromKeyedServices(CommandListType.Direct)]
-    CommandQueue commandQueue,
-    [FromKeyedServices(DescriptorHeapType.RenderTargetView)]
-    DescriptorAllocator renderTargetViewAllocator,
-    [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
-    DescriptorAllocator depthStencilViewAllocator,
-    IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
-    IOptions<GraphicsDebugOptions> debugOptions,
+    PresenterContext context,
     FrameRenderer frameRenderer
 ) {
     public SwapChainPanelPresenter Create(
@@ -114,12 +88,7 @@ public class SwapChainPanelPresenterFactory(
         SwapChainPanel swapChainPanel
     ) {
         return new(
-            device,
-            commandQueue,
-            renderTargetViewAllocator,
-            depthStencilViewAllocator,
-            bufferingOptionsMonitor,
-            debugOptions,
+            context,
             frameRenderer,
             parameters,
             swapChainPanel

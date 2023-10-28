@@ -1,13 +1,8 @@
-﻿using System.Drawing;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using graphics;
+﻿using graphics;
 using rendering;
-using rendering.components;
 using shader.SimplePipelineState;
 using Vortice.Direct3D;
 using Vortice.Direct3D12;
-using Vortice.Mathematics;
 
 namespace sample;
 
@@ -46,13 +41,9 @@ public class TriangleRenderingPipeline : IRenderPipeline {
         );
     }
 
-    public CommandList[] Render(int backBufferIndex,
-        RenderTargetView renderTargetView,
-        DepthStencilView depthStencilView,
-        in ReadOnlySpan<IRenderable> renderables,
-        Viewport viewport,
-        Rectangle scissorRect
-    ) {
+    public CommandList[] Render(FrameContext frameContext) {
+        var (_, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
+
         CommandList.Reset(SimplePipelineState.PipelineState);
         CommandList.NativeCommandList.SetGraphicsRootSignature(SimplePipelineState.RootSignature.NativeRootSignature);
 

@@ -65,13 +65,9 @@ public class FrameRenderer {
         }
     }
 
-    public void Render(
-        int backBufferIndex,
-        RenderTargetView renderTargetView,
-        DepthStencilView depthStencilView,
-        Viewport viewport,
-        Rectangle scissorRect
-    ) {
+    public void Render(FrameContext frameContext) {
+        var (backBufferIndex, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
+
         var beginCommandList = BeginCommandLists[backBufferIndex];
         var endCommandList = EndCommandLists[backBufferIndex];
 
@@ -106,15 +102,7 @@ public class FrameRenderer {
 
         beginCommandList.Close();
 
-        var renderables = new ReadOnlySpan<IRenderable>();
-        var renderCommandLists = RenderPipeline.Render(
-            backBufferIndex,
-            renderTargetView,
-            depthStencilView,
-            renderables,
-            viewport,
-            scissorRect
-        );
+        var renderCommandLists = RenderPipeline.Render(frameContext);
 
         endCommandList.Reset(SimplePipelineState.PipelineState);
 

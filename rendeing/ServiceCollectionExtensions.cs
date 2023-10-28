@@ -6,6 +6,7 @@ namespace rendering;
 public static class ServiceCollectionExtensions {
     public static IServiceCollection AddEngineRendering(this IServiceCollection services) {
         services
+            .AddTransient<PresenterContext>()
             .AddSingleton<IRenderPipeline, NoopRenderPipeline>()
             .AddSingleton<GameLoop>()
             .AddSingleton<FrameRenderer>();
