@@ -1,10 +1,7 @@
-﻿using System.Drawing;
-using graphics;
+﻿using graphics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using rendering.components;
 using rendering.loop;
-using shader.SimplePipelineState;
 using Vortice.Direct3D12;
 using Vortice.Mathematics;
 
@@ -16,11 +13,9 @@ public class FrameRenderer {
     private readonly List<CommandList> EndCommandLists = new(4);
     private readonly CommandQueue CommandQueue;
 
-    private readonly SimplePipelineState SimplePipelineState;
     private readonly IRenderPipeline RenderPipeline;
 
     public FrameRenderer(
-        GraphicsDevice device,
         IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
         [FromKeyedServices(CommandListType.Direct)]
         CommandQueue commandQueue,
@@ -30,8 +25,6 @@ public class FrameRenderer {
         CommandQueue = commandQueue;
         CommandListFactory = commandListFactory;
         RenderPipeline = renderPipeline;
-
-        SimplePipelineState = new(device);
 
         bufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
         OnBufferingSizeChanged(bufferingOptionsMonitor.CurrentValue);
@@ -71,7 +64,7 @@ public class FrameRenderer {
         var beginCommandList = BeginCommandLists[backBufferIndex];
         var endCommandList = EndCommandLists[backBufferIndex];
 
-        beginCommandList.Reset(SimplePipelineState.PipelineState);
+        beginCommandList.Reset();
 
         beginCommandList.NativeCommandList.ResourceBarrierTransition(
             renderTargetView.Resource.NativeResource,
@@ -104,7 +97,7 @@ public class FrameRenderer {
 
         var renderCommandLists = RenderPipeline.Render(frameContext);
 
-        endCommandList.Reset(SimplePipelineState.PipelineState);
+        endCommandList.Reset();
 
         endCommandList.NativeCommandList.ResourceBarrierTransition(
             renderTargetView.Resource.NativeResource,

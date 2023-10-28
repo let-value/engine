@@ -1,14 +1,19 @@
 ﻿using graphics;
 using rendering;
-using shader.SimplePipelineState;
+using shader;
 using Vortice.Direct3D;
 using Vortice.Direct3D12;
+using Vortice.Dxc;
+using Vortice.DXGI;
 
 namespace sample;
 
 public class TriangleRenderingPipeline : IRenderPipeline {
     private readonly CommandList CommandList;
-    private readonly SimplePipelineState SimplePipelineState;
+
+    private readonly RootSignature RootSignature;
+    private readonly PipelineState PipelineState;
+
     private readonly GraphicsResource VertexBuffer;
     private readonly VertexBufferView VertexBufferView;
 
@@ -16,9 +21,41 @@ public class TriangleRenderingPipeline : IRenderPipeline {
         GraphicsDevice device,
         CommandListFactory commandListFactory
     ) {
-        SimplePipelineState = new(device);
+        var rootSignatureFlags = RootSignatureFlags.AllowInputAssemblerInputLayout
+                                 | RootSignatureFlags.DenyHullShaderRootAccess
+                                 | RootSignatureFlags.DenyDomainShaderRootAccess
+                                 | RootSignatureFlags.DenyGeometryShaderRootAccess
+                                 | RootSignatureFlags.DenyAmplificationShaderRootAccess
+                                 | RootSignatureFlags.DenyMeshShaderRootAccess;
 
-        CommandList = commandListFactory.Create(CommandListType.Direct, SimplePipelineState.PipelineState);
+        RootSignature = new(device, new(rootSignatureFlags));
+
+        var inputElementDescs = new InputLayoutDescription(
+            new InputElementDescription("POSITION", 0, Format.R32G32B32_Float, 0, 0),
+            new InputElementDescription("COLOR", 0, Format.R32G32B32A32_Float, 12, 0)
+        );
+
+        var vertexShaderByteCode = ShaderUtils.CompileBytecode(DxcShaderStage.Vertex, "Triangle.hlsl", "VSMain");
+        var pixelShaderByteCode = ShaderUtils.CompileBytecode(DxcShaderStage.Pixel, "Triangle.hlsl", "PSMain");
+
+        var pipelineStateDescription = new GraphicsPipelineStateDescription {
+            RootSignature = RootSignature.NativeRootSignature,
+            VertexShader = vertexShaderByteCode,
+            PixelShader = pixelShaderByteCode,
+            InputLayout = inputElementDescs,
+            SampleMask = uint.MaxValue,
+            PrimitiveTopologyType = PrimitiveTopologyType.Triangle,
+            RasterizerState = RasterizerDescription.CullCounterClockwise,
+            BlendState = BlendDescription.Opaque,
+            DepthStencilState = DepthStencilDescription.Default,
+            RenderTargetFormats = new[] { Format.R8G8B8A8_UNorm },
+            DepthStencilFormat = Format.D32_Float,
+            SampleDescription = SampleDescription.Default
+        };
+
+        PipelineState = new(device, pipelineStateDescription);
+
+        CommandList = commandListFactory.Create(CommandListType.Direct, PipelineState);
         CommandList.Close();
 
         var scale = 0.6f;
@@ -44,8 +81,8 @@ public class TriangleRenderingPipeline : IRenderPipeline {
     public CommandList[] Render(FrameContext frameContext) {
         var (_, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
 
-        CommandList.Reset(SimplePipelineState.PipelineState);
-        CommandList.NativeCommandList.SetGraphicsRootSignature(SimplePipelineState.RootSignature.NativeRootSignature);
+        CommandList.Reset(PipelineState);
+        CommandList.NativeCommandList.SetGraphicsRootSignature(RootSignature.NativeRootSignature);
 
         CommandList.NativeCommandList.OMSetRenderTargets(
             renderTargetView.CpuDescriptor,

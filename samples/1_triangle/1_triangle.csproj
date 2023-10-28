@@ -1,10 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 	<Import Project="..\0_base\Sample.targets" />
 	<ItemGroup>
 	  <Manifest Remove="app.manifest" />
 	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Assets\Common.hlsli" />
+	  <None Remove="Assets\Triangle.hlsl" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<ProjectReference Include="..\0_base\0_base.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Content Update="Assets\Common.hlsli">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="Assets\Triangle.hlsl">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 </Project>

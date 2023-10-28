@@ -1,7 +1,7 @@
 using System.Numerics;
 using Vortice.Mathematics;
 
-namespace shader.SimplePipelineState;
+namespace sample;
 
 public readonly record struct VertexPositionColor(in Vector3 Position, in Color4 Color) {
     public static readonly unsafe int SizeInBytes = sizeof(VertexPositionColor);
