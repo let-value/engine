@@ -1,10 +1,12 @@
-﻿using Vortice.Direct3D12;
+﻿using System.Runtime.InteropServices;
+using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record CommandList : IDisposable {
-    public ID3D12CommandAllocator NativeCommandAllocator;
+[StructLayout(LayoutKind.Sequential)]
+public record struct CommandList : IDisposable {
     public ID3D12GraphicsCommandList4 NativeCommandList;
+    public ID3D12CommandAllocator NativeCommandAllocator;
 
     public CommandList(GraphicsDevice device, CommandListType type, PipelineState? pipelineState = null) {
         NativeCommandAllocator = device.NativeDevice.CreateCommandAllocator(type);

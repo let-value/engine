@@ -18,10 +18,14 @@ public class SwapChainPresenter : IDisposable {
     private readonly IDXGISwapChain3 SwapChain;
     private readonly FrameRenderer FrameRenderer;
     private readonly List<RenderTargetView> RenderTargets = new();
-    private readonly List<FrameContext> FrameContexts = new();
+    private DepthStencilView DepthStencilBuffer;
+    private CommandListRequest CommandListRequest;
+    private CommandList[] CommandLists = Array.Empty<CommandList>();
+    private Viewport Viewport;
+    private Rectangle ScissorsRect;
 
     private int BackBufferIndex;
-    private DepthStencilView DepthStencilBuffer;
+
 
     public SwapChainPresenter(
         PresenterContext context,
@@ -166,26 +170,30 @@ public class SwapChainPresenter : IDisposable {
     }
 
     private void UpdateFrameContexts() {
-        var viewport = new Viewport(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
-        var scissorsRect = new Rectangle(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
-
-        FrameContexts.Clear();
-
-        for (var i = FrameContexts.Count; i < RenderLatency; i++) {
-            FrameContexts.Add(new(
-                i,
-                RenderTargets[i],
-                DepthStencilBuffer,
-                viewport,
-                scissorsRect
-            ));
+        foreach (var commandList in CommandLists) {
+            commandList.Dispose();
         }
+
+        CommandListRequest = new(RenderLatency, new[] { FrameRenderer.GetCommandListCount() });
+        CommandLists = Context.CommandListAllocator.Allocate(CommandListRequest, CommandListType.Direct);
+
+        Viewport = new Viewport(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
+        ScissorsRect = new Rectangle(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
     }
 
     public void Present() {
         SynchronizationContext.Lock();
 
-        var frameContext = FrameContexts[BackBufferIndex];
+        var commandLists = CommandListRequest.Slice(BackBufferIndex, CommandLists);
+
+        var frameContext = new FrameContext(
+            BackBufferIndex,
+            commandLists,
+            RenderTargets[BackBufferIndex],
+            DepthStencilBuffer,
+            Viewport,
+            ScissorsRect
+        );
 
         FrameRenderer.Render(frameContext);
 

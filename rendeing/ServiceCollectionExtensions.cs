@@ -7,6 +7,7 @@ public static class ServiceCollectionExtensions {
     public static IServiceCollection AddEngineRendering(this IServiceCollection services) {
         services
             .AddTransient<PresenterContext>()
+            .AddSingleton<CommandListAllocator>()
             .AddSingleton<IRenderPipeline, NoopRenderPipeline>()
             .AddSingleton<GameLoop>()
             .AddSingleton<FrameRenderer>();

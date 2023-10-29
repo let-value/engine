@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.InteropServices;
 using Vortice.Direct3D12;
 
 namespace graphics;
@@ -27,13 +29,14 @@ public record CommandQueue : IDisposable {
         WaitForFence(NativeFence, fenceValue);
     }
 
-    public void ExecuteSimple(params CommandList[] commandLists) {
-        if (!commandLists.Any()) {
-            return;
+    public void ExecuteSimple(ReadOnlySpan<CommandList> commandLists) {
+        //TODO: This is a hack, we should avoid allocating here
+        var temporaryArray = new ID3D12CommandList[commandLists.Length];
+        for (var i = 0; i < commandLists.Length; i++) {
+            temporaryArray[i] = commandLists[i].NativeCommandList;
         }
 
-        var nativeCommandLists = commandLists.Select(commandList => commandList.NativeCommandList).ToArray();
-        NativeQueue.ExecuteCommandLists(nativeCommandLists);
+        NativeQueue.ExecuteCommandLists(temporaryArray);
     }
 
     private ulong ExecuteInternal(params CommandList[] commandLists) {

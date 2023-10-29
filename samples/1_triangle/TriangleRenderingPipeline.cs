@@ -17,10 +17,11 @@ public class TriangleRenderingPipeline : IRenderPipeline {
     private readonly GraphicsResource VertexBuffer;
     private readonly VertexBufferView VertexBufferView;
 
-    public TriangleRenderingPipeline(
-        GraphicsDevice device,
-        CommandListFactory commandListFactory
-    ) {
+    public CommandListRequest GetCommandListCount() {
+        return new(1);
+    }
+
+    public TriangleRenderingPipeline(GraphicsDevice device) {
         var rootSignatureFlags = RootSignatureFlags.AllowInputAssemblerInputLayout
                                  | RootSignatureFlags.DenyHullShaderRootAccess
                                  | RootSignatureFlags.DenyDomainShaderRootAccess
@@ -55,9 +56,6 @@ public class TriangleRenderingPipeline : IRenderPipeline {
 
         PipelineState = new(device, pipelineStateDescription);
 
-        CommandList = commandListFactory.Create(CommandListType.Direct, PipelineState);
-        CommandList.Close();
-
         var scale = 0.6f;
 
         var triangleVertices = new[] {
@@ -78,8 +76,10 @@ public class TriangleRenderingPipeline : IRenderPipeline {
         );
     }
 
-    public CommandList[] Render(FrameContext frameContext) {
-        var (_, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
+    public void Render(FrameContext frameContext) {
+        var (_, commandLists, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
+
+        var CommandList = commandLists[0];
 
         CommandList.Reset(PipelineState);
         CommandList.NativeCommandList.SetGraphicsRootSignature(RootSignature.NativeRootSignature);
@@ -96,8 +96,6 @@ public class TriangleRenderingPipeline : IRenderPipeline {
         CommandList.NativeCommandList.IASetVertexBuffers(0, VertexBufferView);
         CommandList.NativeCommandList.DrawInstanced(3, 1, 0, 0);
         CommandList.Close();
-
-        return new[] { CommandList };
     }
 
     public void Dispose() {

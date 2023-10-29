@@ -7,62 +7,37 @@ using Vortice.Mathematics;
 
 namespace rendering;
 
-public class FrameRenderer {
-    private readonly CommandListFactory CommandListFactory;
-    private readonly List<CommandList> BeginCommandLists = new(4);
-    private readonly List<CommandList> EndCommandLists = new(4);
+public class FrameRenderer : IRenderPipeline {
     private readonly CommandQueue CommandQueue;
-
     private readonly IRenderPipeline RenderPipeline;
+    private readonly CommandListRequest CommandListRequest;
 
     public FrameRenderer(
-        IOptionsMonitor<RenderBufferingOptions> bufferingOptionsMonitor,
         [FromKeyedServices(CommandListType.Direct)]
         CommandQueue commandQueue,
-        CommandListFactory commandListFactory,
         IRenderPipeline renderPipeline
     ) {
         CommandQueue = commandQueue;
-        CommandListFactory = commandListFactory;
         RenderPipeline = renderPipeline;
 
-        bufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
-        OnBufferingSizeChanged(bufferingOptionsMonitor.CurrentValue);
-    }
-
-    private void OnBufferingSizeChanged(RenderBufferingOptions bufferingOptions) {
-        var newBufferCount = bufferingOptions.BufferCount;
-
-        while (BeginCommandLists.Count < newBufferCount) {
-            var newBeginCommandList = CommandListFactory.Create(CommandListType.Direct);
-            newBeginCommandList.Close();
-
-            BeginCommandLists.Add(newBeginCommandList);
-        }
-
-        while (BeginCommandLists.Count > newBufferCount) {
-            BeginCommandLists[^1].Dispose();
-            BeginCommandLists.RemoveAt(BeginCommandLists.Count - 1);
-        }
-
-        while (EndCommandLists.Count < newBufferCount) {
-            var newEndCommandList = CommandListFactory.Create(CommandListType.Direct);
-            newEndCommandList.Close();
-
-            EndCommandLists.Add(newEndCommandList);
-        }
-
-        while (EndCommandLists.Count > newBufferCount) {
-            EndCommandLists[^1].Dispose();
-            EndCommandLists.RemoveAt(EndCommandLists.Count - 1);
-        }
+        CommandListRequest = new CommandListRequest(
+            1,
+            new CommandListRequest[] {
+                new CommandListRequest(1),
+                RenderPipeline.GetCommandListCount(),
+                new CommandListRequest(1)
+            }
+        );
     }
 
     public void Render(FrameContext frameContext) {
-        var (backBufferIndex, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
+        var (backBufferIndex, commandLists, renderTargetView, depthStencilView, _, _) = frameContext;
 
-        var beginCommandList = BeginCommandLists[backBufferIndex];
-        var endCommandList = EndCommandLists[backBufferIndex];
+        var beginCommandList = CommandListRequest.SliceChild(0, commandLists)[0];
+
+        var renderPipelineSpan = CommandListRequest.SliceChild(1, commandLists);
+
+        var endCommandList = CommandListRequest.SliceChild(2, commandLists)[0];
 
         beginCommandList.Reset();
 
@@ -95,7 +70,7 @@ public class FrameRenderer {
 
         beginCommandList.Close();
 
-        var renderCommandLists = RenderPipeline.Render(frameContext);
+        RenderPipeline.Render(frameContext with { CommandLists = renderPipelineSpan });
 
         endCommandList.Reset();
 
@@ -113,16 +88,12 @@ public class FrameRenderer {
 
         endCommandList.NativeCommandList.Close();
 
-        var commandLists = new CommandList[renderCommandLists.Length + 2];
-
-        commandLists[0] = beginCommandList;
-
-        for (var i = 0; i < renderCommandLists.Length; i++) {
-            commandLists[i + 1] = renderCommandLists[i];
-        }
-
-        commandLists[^1] = endCommandList;
-
         CommandQueue.ExecuteSimple(commandLists);
     }
+
+    public CommandListRequest GetCommandListCount() {
+        return CommandListRequest;
+    }
+
+    public void Dispose() { }
 }

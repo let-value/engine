@@ -1,7 +1,6 @@
-﻿using graphics;
-
-namespace rendering;
+﻿namespace rendering;
 
 public interface IRenderPipeline : IDisposable {
-    public CommandList[] Render(FrameContext frameContext);
+    CommandListRequest GetCommandListCount();
+    void Render(FrameContext frameContext);
 }
