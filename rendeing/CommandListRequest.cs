@@ -10,7 +10,7 @@ public record CommandListRequest(int Count, CommandListRequest[]? ChildRequests 
             return total;
         }
 
-        int totalChildRequests = 0;
+        var totalChildRequests = 0;
 
         foreach (var childRequests in ChildRequests) {
             totalChildRequests += childRequests.GetTotalCommandListsRequired();
@@ -21,30 +21,31 @@ public record CommandListRequest(int Count, CommandListRequest[]? ChildRequests 
         return total;
     }
 
-    public ReadOnlySpan<CommandList> Slice(int index, ReadOnlySpan<CommandList> mainSpan) {
+    public ReadOnlySpan<CommandList> Slice(ReadOnlySpan<CommandList> mainSpan, int index, int? childIndex = null) {
         if (index < 0 || index >= Count) {
             throw new ArgumentOutOfRangeException(nameof(index), "Index out of range.");
         }
 
         var chunkSize = mainSpan.Length / Count;
-        return mainSpan.Slice(index * chunkSize, chunkSize);
-    }
+        var remainder = mainSpan.Length % Count;
+        var start = index * chunkSize + Math.Min(index, remainder);
+        var length = chunkSize + (index < remainder ? 1 : 0);
+        var slice = mainSpan.Slice(start, length);
 
-    public ReadOnlySpan<CommandList> SliceChild(int childIndex, ReadOnlySpan<CommandList> mainSpan) {
-        if (ChildRequests == null || childIndex >= ChildRequests.Length) {
+        if (!childIndex.HasValue) {
+            return slice;
+        }
+
+        if (ChildRequests == null || childIndex.Value < 0 || childIndex.Value >= ChildRequests.Length) {
             throw new InvalidOperationException("Invalid child index or no child requests.");
         }
 
-        var start = 0;
-        for (var i = 0; i <= childIndex; i++) {
-            var size = ChildRequests[i].GetTotalCommandListsRequired();
-            if (i == childIndex) {
-                return mainSpan.Slice(start, size);
-            }
+        var childRequest = ChildRequests[childIndex.Value];
+        var totalCommandsBeforeChild =
+            ChildRequests.Take(childIndex.Value).Sum(cr => cr.GetTotalCommandListsRequired());
+        var childStart = totalCommandsBeforeChild;
+        var childLength = childRequest.GetTotalCommandListsRequired();
 
-            start += size;
-        }
-
-        throw new InvalidOperationException("Should not reach here.");
+        return slice.Slice(childStart, childLength);
     }
 }

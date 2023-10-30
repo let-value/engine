@@ -4,32 +4,26 @@ using Vortice.Mathematics;
 
 namespace rendering;
 
-public ref struct FrameContext {
-    public int BackBufferIndex;
-    public ReadOnlySpan<CommandList> CommandLists;
-    public RenderTargetView RenderTargetView;
-    public DepthStencilView DepthStencilView;
-    public Viewport Viewport;
-    public Rectangle ScissorRect;
-
-    public FrameContext(
-        int BackBufferIndex,
-        ReadOnlySpan<CommandList> CommandLists,
-        RenderTargetView RenderTargetView,
-        DepthStencilView DepthStencilView,
-        Viewport Viewport,
-        Rectangle ScissorRect
-    ) {
-        this.BackBufferIndex = BackBufferIndex;
-        this.CommandLists = CommandLists;
-        this.RenderTargetView = RenderTargetView;
-        this.DepthStencilView = DepthStencilView;
-        this.Viewport = Viewport;
-        this.ScissorRect = ScissorRect;
-    }
+public ref struct FrameContext(
+    int backBufferIndex,
+    double deltaTime,
+    ReadOnlySpan<CommandList> commandLists,
+    RenderTargetView renderTargetView,
+    DepthStencilView depthStencilView,
+    Viewport viewport,
+    Rectangle scissorRect
+) {
+    public int BackBufferIndex = backBufferIndex;
+    public double DeltaTime = deltaTime;
+    public ReadOnlySpan<CommandList> CommandLists = commandLists;
+    public RenderTargetView RenderTargetView = renderTargetView;
+    public DepthStencilView DepthStencilView = depthStencilView;
+    public Viewport Viewport = viewport;
+    public Rectangle ScissorRect = scissorRect;
 
     public void Deconstruct(
         out int backBufferIndex,
+        out double deltaTime,
         out ReadOnlySpan<CommandList> commandLists,
         out RenderTargetView renderTargetView,
         out DepthStencilView depthStencilView,
@@ -37,6 +31,7 @@ public ref struct FrameContext {
         out Rectangle scissorRect
     ) {
         backBufferIndex = BackBufferIndex;
+        deltaTime = DeltaTime;
         commandLists = CommandLists;
         renderTargetView = RenderTargetView;
         depthStencilView = DepthStencilView;

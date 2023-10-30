@@ -15,6 +15,7 @@ public record PresenterContext(
     [FromKeyedServices(DescriptorHeapType.DepthStencilView)]
     DescriptorAllocator DepthStencilAllocator,
     CommandListAllocator CommandListAllocator,
+    GameLoop RenderLoop,
     IOptionsMonitor<RenderBufferingOptions> BufferingOptionsMonitor,
     IOptions<GraphicsDebugOptions> DebugOptions
 );

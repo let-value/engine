@@ -8,6 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="ReactiveProperty" Version="9.3.4" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\ecs\ecs.csproj" />
         <ProjectReference Include="..\graphics\graphics.csproj" />
         <ProjectReference Include="..\shader\shader.csproj" />

@@ -30,7 +30,7 @@ public class ShaderIncludeHandler(params string[] includeDirectories) : Callback
 
     public Result LoadSource(string fileName, out IDxcBlob? includeSource) {
         if (fileName.StartsWith("./")) {
-            fileName = fileName.Substring(2);
+            fileName = fileName[2..];
         }
 
         var includeFile = GetFilePath(fileName);

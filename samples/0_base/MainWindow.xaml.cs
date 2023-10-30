@@ -1,33 +1,31 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 using rendering;
-using rendering.loop;
 using Vortice.DXGI;
 using winui;
 
 namespace sample;
 
 public partial class MainWindow : IDisposable {
-    private readonly GameLoop GameLoop;
     private readonly SwapChainPanelPresenterFactory SwapChainPanelPresenterFactory;
     private SwapChainPanelPresenter? Presenter;
 
-    public MainWindow(GameLoop gameLoop, SwapChainPanelPresenterFactory swapChainPanelPresenterFactory,
-        IHostApplicationLifetime lifeTime) {
+    public MainWindow(
+        SwapChainPanelPresenterFactory swapChainPanelPresenterFactory,
+        IHostApplicationLifetime lifeTime
+    ) {
         InitializeComponent();
+
+        SystemBackdrop = new DesktopAcrylicBackdrop();
 
         SwapChainPanel.Loaded += OnActivated;
         SwapChainPanelPresenterFactory = swapChainPanelPresenterFactory;
 
-        GameLoop = gameLoop;
-        GameLoop.OnUpdate += deltaTime => { Presenter?.Present(); };
-
         Closed += (_, _) => {
-            this.Dispose();
+            Dispose();
             lifeTime.StopApplication();
         };
-
-        //CompositionTarget.Rendering += ((sender, o) => { GameLoop.Run(); });
     }
 
     private void OnActivated(object sender, RoutedEventArgs e) {
@@ -43,12 +41,10 @@ public partial class MainWindow : IDisposable {
         };
 
         Presenter = SwapChainPanelPresenterFactory.Create(parameters, SwapChainPanel);
-
-        GameLoop.Start();
+        Presenter.RenderLoop.Start();
     }
 
     public void Dispose() {
-        GameLoop.Dispose();
         Presenter?.Dispose();
     }
 }

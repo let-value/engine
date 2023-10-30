@@ -1,7 +1,5 @@
 ﻿using graphics;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using rendering.loop;
 using Vortice.Direct3D12;
 using Vortice.Mathematics;
 
@@ -20,24 +18,24 @@ public class FrameRenderer : IRenderPipeline {
         CommandQueue = commandQueue;
         RenderPipeline = renderPipeline;
 
-        CommandListRequest = new CommandListRequest(
+        CommandListRequest = new(
             1,
-            new CommandListRequest[] {
-                new CommandListRequest(1),
+            new[] {
+                new(1),
                 RenderPipeline.GetCommandListCount(),
-                new CommandListRequest(1)
+                new(1)
             }
         );
     }
 
     public void Render(FrameContext frameContext) {
-        var (backBufferIndex, commandLists, renderTargetView, depthStencilView, _, _) = frameContext;
+        var (_, _, commandLists, renderTargetView, depthStencilView, _, _) = frameContext;
 
-        var beginCommandList = CommandListRequest.SliceChild(0, commandLists)[0];
+        var beginCommandList = CommandListRequest.Slice(commandLists, 0, 0)[0];
 
-        var renderPipelineSpan = CommandListRequest.SliceChild(1, commandLists);
+        var renderPipelineSpan = CommandListRequest.Slice(commandLists, 0, 1);
 
-        var endCommandList = CommandListRequest.SliceChild(2, commandLists)[0];
+        var endCommandList = CommandListRequest.Slice(commandLists, 0, 2)[0];
 
         beginCommandList.Reset();
 

@@ -9,8 +9,6 @@ using Vortice.DXGI;
 namespace sample;
 
 public class TriangleRenderingPipeline : IRenderPipeline {
-    private readonly CommandList CommandList;
-
     private readonly RootSignature RootSignature;
     private readonly PipelineState PipelineState;
 
@@ -77,29 +75,28 @@ public class TriangleRenderingPipeline : IRenderPipeline {
     }
 
     public void Render(FrameContext frameContext) {
-        var (_, commandLists, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
+        var (_, _, commandLists, renderTargetView, depthStencilView, viewport, scissorRect) = frameContext;
 
-        var CommandList = commandLists[0];
+        var commandList = commandLists[0];
 
-        CommandList.Reset(PipelineState);
-        CommandList.NativeCommandList.SetGraphicsRootSignature(RootSignature.NativeRootSignature);
+        commandList.Reset(PipelineState);
+        commandList.NativeCommandList.SetGraphicsRootSignature(RootSignature.NativeRootSignature);
 
-        CommandList.NativeCommandList.OMSetRenderTargets(
+        commandList.NativeCommandList.OMSetRenderTargets(
             renderTargetView.CpuDescriptor,
             depthStencilView.CpuDescriptor
         );
 
-        CommandList.NativeCommandList.RSSetViewport(viewport);
-        CommandList.NativeCommandList.RSSetScissorRect(scissorRect);
+        commandList.NativeCommandList.RSSetViewport(viewport);
+        commandList.NativeCommandList.RSSetScissorRect(scissorRect);
 
-        CommandList.NativeCommandList.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
-        CommandList.NativeCommandList.IASetVertexBuffers(0, VertexBufferView);
-        CommandList.NativeCommandList.DrawInstanced(3, 1, 0, 0);
-        CommandList.Close();
+        commandList.NativeCommandList.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
+        commandList.NativeCommandList.IASetVertexBuffers(0, VertexBufferView);
+        commandList.NativeCommandList.DrawInstanced(3, 1, 0, 0);
+        commandList.Close();
     }
 
     public void Dispose() {
-        CommandList.Dispose();
         VertexBuffer.Dispose();
     }
 }

@@ -26,6 +26,7 @@ public class SwapChainPresenter : IDisposable {
 
     private int BackBufferIndex;
 
+    public GameLoop RenderLoop => Context.RenderLoop;
 
     public SwapChainPresenter(
         PresenterContext context,
@@ -43,6 +44,8 @@ public class SwapChainPresenter : IDisposable {
 
         Context.BufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
         OnBufferingSizeChanged(Context.BufferingOptionsMonitor.CurrentValue);
+
+        RenderLoop.OnUpdate += Present;
     }
 
     public void Dispose() {
@@ -177,17 +180,18 @@ public class SwapChainPresenter : IDisposable {
         CommandListRequest = new(RenderLatency, new[] { FrameRenderer.GetCommandListCount() });
         CommandLists = Context.CommandListAllocator.Allocate(CommandListRequest, CommandListType.Direct);
 
-        Viewport = new Viewport(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
-        ScissorsRect = new Rectangle(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
+        Viewport = new(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
+        ScissorsRect = new(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
     }
 
-    public void Present() {
+    public void Present(double deltaTime) {
         SynchronizationContext.Lock();
 
-        var commandLists = CommandListRequest.Slice(BackBufferIndex, CommandLists);
+        var commandLists = CommandListRequest.Slice(CommandLists, BackBufferIndex);
 
         var frameContext = new FrameContext(
             BackBufferIndex,
+            deltaTime,
             commandLists,
             RenderTargets[BackBufferIndex],
             DepthStencilBuffer,
