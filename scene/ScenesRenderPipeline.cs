@@ -7,10 +7,12 @@ namespace scene;
 public class ScenesRenderPipeline : IRenderPipeline {
     private readonly SceneManager SceneManager;
     private ReadOnlyCollection<IScene> ForegroundScenes = null!;
-    private CommandListRequest CommandListRequest = null!;
+    private readonly CommandListRequest CommandListRequest;
 
     public ScenesRenderPipeline(SceneManager sceneManager) {
         SceneManager = sceneManager;
+        CommandListRequest = new(1);
+
         sceneManager.ForegroundChanged += OnForegroundChanged;
         OnForegroundChanged();
     }
@@ -20,7 +22,10 @@ public class ScenesRenderPipeline : IRenderPipeline {
             .Where(x => x.RenderPipeline != null)
             .ToList()
             .AsReadOnly();
-        CommandListRequest = new(1, ForegroundScenes.Select(x => x.RenderPipeline?.GetCommandListCount()).ToArray()!);
+
+        CommandListRequest.ChildRequests.Value = ForegroundScenes
+            .Select(x => x.RenderPipeline!.GetCommandListCount())
+            .ToArray();
     }
 
     public CommandListRequest GetCommandListCount() {
@@ -38,5 +43,6 @@ public class ScenesRenderPipeline : IRenderPipeline {
 
     public void Dispose() {
         SceneManager.ForegroundChanged -= OnForegroundChanged;
+        CommandListRequest.Dispose();
     }
 }

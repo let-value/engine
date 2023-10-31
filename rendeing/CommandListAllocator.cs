@@ -5,14 +5,13 @@ namespace rendering;
 
 public class CommandListAllocator(CommandListFactory commandListFactory) {
     public CommandList[] Allocate(
-        CommandListRequest request,
+        int count,
         CommandListType type,
         PipelineState? pipelineState = null
     ) {
-        var totalRequired = request.GetTotalCommandListsRequired();
-        var lists = new CommandList[totalRequired];
+        var lists = new CommandList[count];
 
-        for (uint i = 0; i < totalRequired; i++) {
+        for (uint i = 0; i < count; i++) {
             lists[i] = commandListFactory.Create(type, pipelineState);
             lists[i].Close();
         }

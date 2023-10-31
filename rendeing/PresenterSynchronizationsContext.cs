@@ -5,7 +5,7 @@ namespace rendering;
 public class PresenterSynchronizationsContext(PresenterContext context) : IDisposable {
     private readonly ID3D12Fence FrameFence = context.Device.NativeDevice.CreateFence();
     private readonly AutoResetEvent FrameFenceEvent = new(false);
-    private readonly SemaphoreSlim ResizeLock = new(1, 1);
+    private readonly SemaphoreSlim ResizeLock = new(1, 2);
     private ulong FrameCount;
 
     public void Lock() => ResizeLock.Wait();

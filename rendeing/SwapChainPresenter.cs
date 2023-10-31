@@ -11,7 +11,7 @@ namespace rendering;
 public class SwapChainPresenter : IDisposable {
     private readonly PresenterContext Context;
     private PresentationParameters Parameters;
-    private int RenderLatency;
+    private int RenderLatency = 1;
 
     private readonly PresenterSynchronizationsContext SynchronizationContext;
 
@@ -25,6 +25,7 @@ public class SwapChainPresenter : IDisposable {
     private Rectangle ScissorsRect;
 
     private int BackBufferIndex;
+    private readonly IDisposable CommandListRequestSubscription;
 
     public GameLoop RenderLoop => Context.RenderLoop;
 
@@ -42,8 +43,15 @@ public class SwapChainPresenter : IDisposable {
 
         DepthStencilBuffer = CreateDepthStencilBuffer();
 
+        CommandListRequest = new(
+            Context.BufferingOptionsMonitor.CurrentValue.BufferCount,
+            new[] { FrameRenderer.GetCommandListCount() }
+        );
+
         Context.BufferingOptionsMonitor.OnChange(OnBufferingSizeChanged);
         OnBufferingSizeChanged(Context.BufferingOptionsMonitor.CurrentValue);
+
+        CommandListRequestSubscription = CommandListRequest.TotalCount.Subscribe(OnCommandListsRequestUpdated);
 
         RenderLoop.OnUpdate += Present;
     }
@@ -51,8 +59,14 @@ public class SwapChainPresenter : IDisposable {
     public void Dispose() {
         SynchronizationContext.WaitForGpuCompletion();
 
+        RenderLoop.OnUpdate -= Present;
+        RenderLoop.Dispose();
+
         SynchronizationContext.Dispose();
         SwapChain.Dispose();
+
+        CommandListRequest.Dispose();
+        CommandListRequestSubscription.Dispose();
 
         DepthStencilBuffer.Dispose();
         DisposeRenderTargets();
@@ -118,6 +132,7 @@ public class SwapChainPresenter : IDisposable {
         }
 
         RenderLatency = bufferingOptions.BufferCount;
+        CommandListRequest.Count.Value = RenderLatency;
 
         UpdateRenderTargets();
         UpdateFrameContexts();
@@ -137,6 +152,19 @@ public class SwapChainPresenter : IDisposable {
         UpdateDepthStencilBuffer();
         UpdateRenderTargets(true);
         UpdateFrameContexts();
+
+        SynchronizationContext.Release();
+    }
+
+    private void OnCommandListsRequestUpdated(int count) {
+        SynchronizationContext.WaitForGpuCompletion();
+        SynchronizationContext.Lock();
+
+        foreach (var list in CommandLists) {
+            list.Dispose();
+        }
+
+        CommandLists = Context.CommandListAllocator.Allocate(count, CommandListType.Direct);
 
         SynchronizationContext.Release();
     }
@@ -173,13 +201,6 @@ public class SwapChainPresenter : IDisposable {
     }
 
     private void UpdateFrameContexts() {
-        foreach (var commandList in CommandLists) {
-            commandList.Dispose();
-        }
-
-        CommandListRequest = new(RenderLatency, new[] { FrameRenderer.GetCommandListCount() });
-        CommandLists = Context.CommandListAllocator.Allocate(CommandListRequest, CommandListType.Direct);
-
         Viewport = new(Parameters.BackBufferWidth, Parameters.BackBufferHeight);
         ScissorsRect = new(0, 0, Parameters.BackBufferWidth, Parameters.BackBufferHeight);
     }
