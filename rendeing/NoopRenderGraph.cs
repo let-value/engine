@@ -2,7 +2,7 @@
 
 namespace rendering;
 
-public class NoopRenderPipeline : IRenderPipeline {
+public class NoopRenderGraph : IRenderGraph {
     public CommandListRequest GetCommandListCount() {
         return new(0);
     }

@@ -3,10 +3,10 @@ using scene;
 
 namespace sample;
 
-public class TriangleScene(TriangleRenderingPipeline triangleRenderingPipeline) : IScene {
-    public IRenderPipeline? RenderPipeline { get; set; } = triangleRenderingPipeline;
+public class TriangleScene(TriangleRenderGraph triangleRenderGraph) : IScene {
+    public IRenderGraph? RenderGraph { get; set; } = triangleRenderGraph;
 
     public void Dispose() {
-        RenderPipeline?.Dispose();
+        RenderGraph?.Dispose();
     }
 }

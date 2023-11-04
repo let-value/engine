@@ -4,5 +4,5 @@ namespace scene;
 
 public interface IScene : IDisposable {
     public bool IsModal => false;
-    public IRenderPipeline? RenderPipeline => default;
+    public IRenderGraph? RenderGraph => default;
 }

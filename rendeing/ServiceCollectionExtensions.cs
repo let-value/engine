@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions {
             .AddTransient<PresenterContext>()
             .AddTransient<GameLoop>()
             .AddSingleton<CommandListAllocator>()
-            .AddSingleton<IRenderPipeline, NoopRenderPipeline>()
+            .AddSingleton<IRenderGraph, NoopRenderGraph>()
             .AddSingleton<FrameRenderer>();
 
         services.Configure<GameLoopOptions>(options => { options.UpdateRate = 60; });

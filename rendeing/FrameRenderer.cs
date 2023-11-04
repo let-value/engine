@@ -5,24 +5,24 @@ using Vortice.Mathematics;
 
 namespace rendering;
 
-public class FrameRenderer : IRenderPipeline {
+public class FrameRenderer : IRenderGraph {
     private readonly CommandQueue CommandQueue;
-    private readonly IRenderPipeline RenderPipeline;
+    private readonly IRenderGraph RenderGraph;
     private readonly CommandListRequest CommandListRequest;
 
     public FrameRenderer(
         [FromKeyedServices(CommandListType.Direct)]
         CommandQueue commandQueue,
-        IRenderPipeline renderPipeline
+        IRenderGraph renderGraph
     ) {
         CommandQueue = commandQueue;
-        RenderPipeline = renderPipeline;
+        RenderGraph = renderGraph;
 
         CommandListRequest = new(
             1,
             new[] {
                 new(1),
-                RenderPipeline.GetCommandListCount(),
+                RenderGraph.GetCommandListCount(),
                 new(1)
             }
         );
@@ -68,7 +68,7 @@ public class FrameRenderer : IRenderPipeline {
 
         beginCommandList.Close();
 
-        RenderPipeline.Render(frameContext with { CommandLists = renderPipelineSpan });
+        RenderGraph.Render(frameContext with { CommandLists = renderPipelineSpan });
 
         endCommandList.Reset();
 

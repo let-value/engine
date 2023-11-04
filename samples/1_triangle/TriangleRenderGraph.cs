@@ -8,7 +8,7 @@ using Vortice.DXGI;
 
 namespace sample;
 
-public class TriangleRenderingPipeline : IRenderPipeline {
+public class TriangleRenderGraph : IRenderGraph {
     private readonly RootSignature RootSignature;
     private readonly PipelineState PipelineState;
 
@@ -19,7 +19,7 @@ public class TriangleRenderingPipeline : IRenderPipeline {
         return new(1);
     }
 
-    public TriangleRenderingPipeline(GraphicsDevice device) {
+    public TriangleRenderGraph(GraphicsDevice device) {
         var rootSignatureFlags = RootSignatureFlags.AllowInputAssemblerInputLayout
                                  | RootSignatureFlags.DenyHullShaderRootAccess
                                  | RootSignatureFlags.DenyDomainShaderRootAccess

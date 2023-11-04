@@ -7,7 +7,7 @@ public static class ServiceCollectionExtensions {
     public static IServiceCollection AddScenes(this IServiceCollection services) {
         services
             .AddSingleton<SceneManager>()
-            .AddSingleton<IRenderPipeline, ScenesRenderPipeline>();
+            .AddSingleton<IRenderGraph, ScenesRenderGraph>();
 
         return services;
     }

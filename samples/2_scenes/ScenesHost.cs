@@ -10,7 +10,7 @@ public class ScenesHost {
         .ConfigureServices((context, services) => {
             services
                 .AddSingleton<MainWindow, ScenesWindow>()
-                .AddScoped<TriangleRenderingPipeline>()
+                .AddScoped<TriangleRenderGraph>()
                 .AddTransient<TriangleScene>()
                 .Configure<ScenesOptions>(options => {
                     options.InitialScene = "main";

@@ -19,6 +19,8 @@ public partial class MainWindow : IDisposable {
     public MainWindow(MainWindowContext context) {
         InitializeComponent();
 
+        var handle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+
         Title = "Base Sample";
 
         SystemBackdrop = new DesktopAcrylicBackdrop();

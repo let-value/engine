@@ -4,12 +4,12 @@ using rendering;
 
 namespace scene;
 
-public class ScenesRenderPipeline : IRenderPipeline {
+public class ScenesRenderGraph : IRenderGraph {
     private readonly SceneManager SceneManager;
     private ReadOnlyCollection<IScene> ForegroundScenes = null!;
     private readonly CommandListRequest CommandListRequest;
 
-    public ScenesRenderPipeline(SceneManager sceneManager) {
+    public ScenesRenderGraph(SceneManager sceneManager) {
         SceneManager = sceneManager;
         CommandListRequest = new(1);
 
@@ -19,12 +19,12 @@ public class ScenesRenderPipeline : IRenderPipeline {
 
     private void OnForegroundChanged(object? sender = null, EventArgs? e = null) {
         ForegroundScenes = SceneManager.ForegroundScenes
-            .Where(x => x.RenderPipeline != null)
+            .Where(x => x.RenderGraph != null)
             .ToList()
             .AsReadOnly();
 
         CommandListRequest.ChildRequests.Value = ForegroundScenes
-            .Select(x => x.RenderPipeline!.GetCommandListCount())
+            .Select(x => x.RenderGraph!.GetCommandListCount())
             .ToArray();
     }
 
@@ -37,7 +37,7 @@ public class ScenesRenderPipeline : IRenderPipeline {
             var commandLists = CommandListRequest.Slice(frameContext.CommandLists, 0, i);
             var scene = ForegroundScenes[i];
 
-            scene.RenderPipeline?.Render(frameContext with { CommandLists = commandLists });
+            scene.RenderGraph?.Render(frameContext with { CommandLists = commandLists });
         }
     }
 
