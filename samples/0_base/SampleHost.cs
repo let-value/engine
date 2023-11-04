@@ -3,11 +3,13 @@ using graphics;
 using Microsoft.Extensions.DependencyInjection;
 using rendering;
 using rendering.loop;
-using winui;
 using Microsoft.UI.Dispatching;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using input;
 using Microsoft.UI.Xaml;
+using winui.input;
+using winui.rendering;
 
 namespace sample;
 
@@ -16,13 +18,16 @@ public class SampleHost {
         .ConfigureServices((context, services) => {
                 services
                     .AddEngineCore()
-                    .AddEngineRendering();
+                    .AddSingleton<IGamepadSource, WindowsGamepadSource>()
+                    .AddInput()
+                    .AddRendering();
 
                 services.AddSingleton<SwapChainPanelPresenterFactory>();
 
                 services.Configure<GameLoopOptions>(options => { options.UpdateRate = 1; });
 
                 services
+                    .AddSingleton<MainWindowContext>()
                     .AddSingleton<MainWindow>()
                     .AddSingleton<App>()
                     .AddHostedService<WinUiHostedService<App>>();

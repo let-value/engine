@@ -208,6 +208,8 @@ public class SwapChainPresenter : IDisposable {
     public void Present(double deltaTime) {
         SynchronizationContext.Lock();
 
+        Context.DirectInputManager.GetUpdates();
+
         var commandLists = CommandListRequest.Slice(CommandLists, BackBufferIndex);
 
         var frameContext = new FrameContext(

@@ -18,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\input\input.csproj" />
         <ProjectReference Include="..\..\winui\winui.csproj" />
     </ItemGroup>
 </Project>

@@ -9,6 +9,7 @@ public class ScenesHost {
         .CreateHost()
         .ConfigureServices((context, services) => {
             services
+                .AddSingleton<MainWindow, ScenesWindow>()
                 .AddScoped<TriangleRenderingPipeline>()
                 .AddTransient<TriangleScene>()
                 .Configure<ScenesOptions>(options => {

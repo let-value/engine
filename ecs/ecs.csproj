@@ -1,12 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <LangVersion>preview</LangVersion>
-    </PropertyGroup>
-
+	<Import Project="..\shared.targets"/>
     <ItemGroup>
         <PackageReference Include="Arch" Version="1.2.7" />
         <PackageReference Include="Arch.AOT.SourceGenerator" Version="1.0.0" />

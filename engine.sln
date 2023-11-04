@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "scene", "scene\scene.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "2_scenes", "samples\2_scenes\2_scenes.csproj", "{D6D35B9A-B1A2-4646-A3AD-04D98FA33BCD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "input", "input\input.csproj", "{CE448F79-E395-4DA3-8313-C5FB3923C112}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -249,6 +251,26 @@ Global
 		{D6D35B9A-B1A2-4646-A3AD-04D98FA33BCD}.Release|x64.Build.0 = Release|x64
 		{D6D35B9A-B1A2-4646-A3AD-04D98FA33BCD}.Release|x86.ActiveCfg = Release|x86
 		{D6D35B9A-B1A2-4646-A3AD-04D98FA33BCD}.Release|x86.Build.0 = Release|x86
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|ARM.Build.0 = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|x64.Build.0 = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Debug|x86.Build.0 = Debug|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|ARM.ActiveCfg = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|ARM.Build.0 = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|ARM64.Build.0 = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|x64.ActiveCfg = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|x64.Build.0 = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|x86.ActiveCfg = Release|Any CPU
+		{CE448F79-E395-4DA3-8313-C5FB3923C112}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

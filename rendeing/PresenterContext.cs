@@ -1,4 +1,5 @@
 ﻿using graphics;
+using input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using rendering.loop;
@@ -16,6 +17,7 @@ public record PresenterContext(
     DescriptorAllocator DepthStencilAllocator,
     CommandListAllocator CommandListAllocator,
     GameLoop RenderLoop,
+    DirectInputManager DirectInputManager,
     IOptionsMonitor<RenderBufferingOptions> BufferingOptionsMonitor,
     IOptions<GraphicsDebugOptions> DebugOptions
 );

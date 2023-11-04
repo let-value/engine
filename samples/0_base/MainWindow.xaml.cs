@@ -3,32 +3,36 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using rendering;
 using Vortice.DXGI;
-using winui;
+using winui.rendering;
 
 namespace sample;
+
+public record MainWindowContext(
+    SwapChainPanelPresenterFactory SwapChainPanelPresenterFactory,
+    IHostApplicationLifetime LifeTime
+);
 
 public partial class MainWindow : IDisposable {
     private readonly SwapChainPanelPresenterFactory SwapChainPanelPresenterFactory;
     private SwapChainPanelPresenter? Presenter;
 
-    public MainWindow(
-        SwapChainPanelPresenterFactory swapChainPanelPresenterFactory,
-        IHostApplicationLifetime lifeTime
-    ) {
+    public MainWindow(MainWindowContext context) {
         InitializeComponent();
+
+        Title = "Base Sample";
 
         SystemBackdrop = new DesktopAcrylicBackdrop();
 
         SwapChainPanel.Loaded += OnActivated;
-        SwapChainPanelPresenterFactory = swapChainPanelPresenterFactory;
+        SwapChainPanelPresenterFactory = context.SwapChainPanelPresenterFactory;
 
         Closed += (_, _) => {
             Dispose();
-            lifeTime.StopApplication();
+            context.LifeTime.StopApplication();
         };
     }
 
-    private void OnActivated(object sender, RoutedEventArgs e) {
+    public virtual void OnActivated(object sender, RoutedEventArgs e) {
         var width = SwapChainPanel.ActualWidth * SwapChainPanel.CompositionScaleX;
         var height = SwapChainPanel.ActualHeight * SwapChainPanel.CompositionScaleY;
 

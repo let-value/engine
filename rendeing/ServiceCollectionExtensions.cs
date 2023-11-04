@@ -4,7 +4,7 @@ using rendering.loop;
 namespace rendering;
 
 public static class ServiceCollectionExtensions {
-    public static IServiceCollection AddEngineRendering(this IServiceCollection services) {
+    public static IServiceCollection AddRendering(this IServiceCollection services) {
         services
             .AddTransient<PresenterContext>()
             .AddTransient<GameLoop>()

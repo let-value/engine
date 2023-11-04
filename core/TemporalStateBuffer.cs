@@ -1,14 +1,16 @@
 ﻿namespace core;
 
+public record struct StateSnapshot<T>(T State, DateTime Timestamp);
+
 public class TemporalStateBuffer<T> {
-    private readonly Tuple<T, DateTime>[] Buffer;
+    private readonly StateSnapshot<T>[] Buffer;
     private readonly int Capacity;
     private int Count;
     private int CurrentPosition;
 
     public TemporalStateBuffer(int capacity) {
         Capacity = capacity;
-        Buffer = new Tuple<T, DateTime>[capacity];
+        Buffer = new StateSnapshot<T>[capacity];
         CurrentPosition = 0;
         Count = 0;
     }
@@ -30,20 +32,20 @@ public class TemporalStateBuffer<T> {
         }
 
         var latestPosition = (localPosition - 1 + Capacity) % Capacity;
-        return Buffer[latestPosition].Item1;
+        return Buffer[latestPosition].State;
     }
 
     public bool IsInterpolationNeeded(double requesterTickRate) {
         if (Count < 2) return false;
 
         var timeDifference = DateTime.UtcNow
-                             - Buffer[(Volatile.Read(ref CurrentPosition) - 1 + Capacity) % Capacity].Item2;
+                             - Buffer[(Volatile.Read(ref CurrentPosition) - 1 + Capacity) % Capacity].Timestamp;
         var timeDifferenceInSeconds = timeDifference.TotalSeconds;
 
         return timeDifferenceInSeconds > 1.0 / requesterTickRate;
     }
 
-    public IEnumerable<Tuple<T, DateTime>> GetAllStates() {
+    public IEnumerable<StateSnapshot<T>> GetAllStates() {
         var localCount = Volatile.Read(ref Count);
         var localPosition = Volatile.Read(ref CurrentPosition);
 

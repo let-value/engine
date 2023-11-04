@@ -5,7 +5,7 @@ using SharpGen.Runtime;
 using Vortice.DXGI;
 using ISwapChainPanelNative = Vortice.WinUI.ISwapChainPanelNative;
 
-namespace winui;
+namespace winui.rendering;
 
 public class SwapChainPanelPresenter : SwapChainPresenter {
     private readonly SwapChainPanel SwapChainPanel;
