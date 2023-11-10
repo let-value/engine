@@ -1,6 +1,6 @@
 ﻿namespace input;
 
-public interface IGamepad {
+public interface IGamepad : IDisposable {
     public GamepadVibration Vibration { get; set; }
-    public GamepadState GetState();
+    public void PullState(); //GamepadState
 }

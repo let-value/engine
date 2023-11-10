@@ -3,13 +3,15 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using rendering;
 using Vortice.DXGI;
+using winui.input;
 using winui.rendering;
 
 namespace sample;
 
 public record MainWindowContext(
     SwapChainPanelPresenterFactory SwapChainPanelPresenterFactory,
-    IHostApplicationLifetime LifeTime
+    IHostApplicationLifetime LifeTime,
+    WindowsKeyboardSource WindowsKeyboardSource
 );
 
 public partial class MainWindow : IDisposable {
@@ -20,6 +22,7 @@ public partial class MainWindow : IDisposable {
         InitializeComponent();
 
         var handle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        context.WindowsKeyboardSource.Initialize(handle);
 
         Title = "Base Sample";
 

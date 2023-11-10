@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\shared.targets"/>
+	<Import Project="..\shared.targets" />
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0-rc.2.23479.6" />
+	  <PackageReference Include="ReactiveProperty" Version="9.3.4" />
 	  <PackageReference Include="System.Management" Version="7.0.2" />
 	  <PackageReference Include="Vortice.DirectInput" Version="3.3.4" />
 	</ItemGroup>

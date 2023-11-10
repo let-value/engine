@@ -1,7 +1,5 @@
-﻿using Vortice.DirectInput;
+﻿namespace input;
 
-namespace input;
-
-public interface IKeyboard {
-    public KeyboardState GetState();
+public interface IKeyboard : IDisposable {
+    public void PullState();
 }

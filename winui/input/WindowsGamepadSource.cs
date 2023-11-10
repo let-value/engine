@@ -1,11 +1,13 @@
 ﻿using Windows.Gaming.Input;
 using input;
+using System.Collections.Concurrent;
 
 namespace winui.input;
 
 public class WindowsGamepadSource : IGamepadSource {
     public HashSet<IGamepad> Gamepads { get; } = new();
-    private readonly Dictionary<Gamepad, WindowsGamepad> Lookup = new();
+
+    private readonly ConcurrentDictionary<Gamepad, WindowsGamepad> Lookup = new();
 
     public WindowsGamepadSource() {
         Gamepad.GamepadAdded += OnGamepadAdded;
@@ -22,12 +24,14 @@ public class WindowsGamepadSource : IGamepadSource {
     }
 
     private void OnGamepadRemoved(object? sender, Gamepad gamepad) {
-        if (!Lookup.TryGetValue(gamepad, out var windowsGamepad)) {
+        var ok = Lookup.TryRemove(gamepad, out var windowsGamepad);
+
+        if (!ok || windowsGamepad == null) {
             return;
         }
 
         Gamepads.Remove(windowsGamepad);
-        Lookup.Remove(gamepad);
+        windowsGamepad.Dispose();
     }
 
     private void OnGamepadAdded(object? sender, Gamepad gamepad) {
@@ -37,6 +41,12 @@ public class WindowsGamepadSource : IGamepadSource {
 
         var windowsGamepad = new WindowsGamepad(gamepad);
         Gamepads.Add(windowsGamepad);
-        Lookup.Add(gamepad, windowsGamepad);
+        Lookup.TryAdd(gamepad, windowsGamepad);
+    }
+
+    public void PullState() {
+        foreach (var gamepad in Gamepads) {
+            gamepad.PullState();
+        }
     }
 }

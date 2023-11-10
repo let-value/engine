@@ -19,6 +19,9 @@ public class SampleHost {
                 services
                     .AddEngineCore()
                     .AddSingleton<IGamepadSource, WindowsGamepadSource>()
+                    .AddSingleton<WindowsKeyboardSource>()
+                    .AddSingleton<IKeyboardSource, WindowsKeyboardSource>(
+                        provider => provider.GetRequiredService<WindowsKeyboardSource>())
                     .AddInput()
                     .AddRendering();
 

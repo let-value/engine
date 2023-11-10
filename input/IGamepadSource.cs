@@ -2,4 +2,5 @@
 
 public interface IGamepadSource : IDisposable {
     public HashSet<IGamepad> Gamepads { get; }
+    public void PullState();
 }

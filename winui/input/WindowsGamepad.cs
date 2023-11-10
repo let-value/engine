@@ -1,17 +1,77 @@
-﻿using input;
+﻿using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using input;
+using Reactive.Bindings;
 
 namespace winui.input;
 
-internal class WindowsGamepad(Windows.Gaming.Input.Gamepad gamepad) : IGamepad {
+public class WindowsGamepad(Windows.Gaming.Input.Gamepad gamepad) : IGamepad {
+    public ReactiveProperty<GamepadState> State { get; set; } = new(
+        initialValue: new(),
+        mode: ReactivePropertyMode.DistinctUntilChanged,
+        raiseEventScheduler: ImmediateScheduler.Instance
+    );
+
+    public Subject<GamepadEvent> Events { get; set; } = new();
+
+    private IDisposable Subscription => State.Buffer(2, 1)
+        .Where(buffer => buffer.Count == 2)
+        .SelectMany(buffer => CompareStates(buffer[0], buffer[1]))
+        .ObserveOn(ImmediateScheduler.Instance)
+        .Subscribe(Events);
+
+    private IEnumerable<GamepadEvent> CompareStates(GamepadState previous, GamepadState current) {
+        var changedButtons = previous.Buttons ^ current.Buttons;
+        foreach (GamepadButtons button in Enum.GetValues(typeof(GamepadButtons))) {
+            if (changedButtons.HasFlag(button)) {
+                yield return new GamepadButtonEvent {
+                    EventType = current.Buttons.HasFlag(button)
+                        ? GamepadButtonEventType.Down
+                        : GamepadButtonEventType.Up,
+                    Button = button
+                };
+            }
+        }
+
+        if (previous.LeftTrigger != current.LeftTrigger) {
+            yield return new GamepadTriggerEvent {
+                Axis = GamepadAxis.LeftTrigger,
+                Value = current.LeftTrigger
+            };
+        }
+
+        if (previous.RightTrigger != current.RightTrigger) {
+            yield return new GamepadTriggerEvent {
+                Axis = GamepadAxis.RightTrigger,
+                Value = current.RightTrigger
+            };
+        }
+
+        if (previous.LeftThumbstick != current.LeftThumbstick) {
+            yield return new GamepadThumbstickEvent {
+                Axis = GamepadAxis.LeftThumbstick,
+                Value = current.LeftThumbstick
+            };
+        }
+
+        if (previous.RightThumbstick != current.RightThumbstick) {
+            yield return new GamepadThumbstickEvent {
+                Axis = GamepadAxis.RightThumbstick,
+                Value = current.RightThumbstick
+            };
+        }
+    }
+
     public GamepadVibration Vibration {
         get => ToVibration(gamepad.Vibration);
         set => gamepad.Vibration = ToVibration(value);
     }
 
-    public GamepadState GetState() {
+    public void PullState() {
         var reading = gamepad.GetCurrentReading();
 
-        return new() {
+        State.Value = new() {
             Timestamp = reading.Timestamp,
             Buttons = (GamepadButtons)reading.Buttons,
             LeftTrigger = (float)reading.LeftTrigger,
@@ -35,4 +95,10 @@ internal class WindowsGamepad(Windows.Gaming.Input.Gamepad gamepad) : IGamepad {
             RightMotor = vibration.RightMotor,
             RightTrigger = vibration.RightTrigger
         };
+
+    public void Dispose() {
+        Subscription.Dispose();
+        State.Dispose();
+        Events.Dispose();
+    }
 }

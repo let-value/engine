@@ -26,5 +26,13 @@ public enum GamepadButtons : uint {
     Paddle1 = 16384,
     Paddle2 = 32768,
     Paddle3 = 65536,
-    Paddle4 = 131072
+    Paddle4 = 131072,
+}
+
+[Flags]
+public enum GamepadAxis : uint {
+    LeftThumbstick = 0,
+    RightThumbstick = 1,
+    LeftTrigger = 2,
+    RightTrigger = 4,
 }
