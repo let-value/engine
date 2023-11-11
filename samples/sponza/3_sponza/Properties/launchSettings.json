@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "3_sponza": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

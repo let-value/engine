@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\0_base\Sample.targets" />
-	<ItemGroup>
-		<Manifest Remove="app.manifest" />
-	</ItemGroup>
+	
 	<ItemGroup>
 	  <ProjectReference Include="..\..\scene\scene.csproj" />
 	  <ProjectReference Include="..\1_triangle\1_triangle.csproj" />

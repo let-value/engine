@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\0_base\Sample.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\assets\assets.csproj" />
+    <ProjectReference Include="..\..\0_base\0_base.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
+</Project>

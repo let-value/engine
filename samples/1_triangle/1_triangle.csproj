@@ -3,9 +3,7 @@
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<Import Project="..\0_base\Sample.targets" />
-	<ItemGroup>
-	  <Manifest Remove="app.manifest" />
-	</ItemGroup>
+
 	<ItemGroup>
 	  <None Remove="Assets\Common.hlsli" />
 	  <None Remove="Assets\Triangle.hlsl" />
