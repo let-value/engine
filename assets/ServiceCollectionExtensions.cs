@@ -1,4 +1,4 @@
-﻿using Assimp;
+﻿using assets.assets;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace assets;
@@ -6,8 +6,8 @@ namespace assets;
 public static class ServiceCollectionExtensions {
     public static IServiceCollection AddAssetLibrary(this IServiceCollection services) {
         return services
-            .AddSingleton<AssimpContext>()
-            .AddSingleton<AssetFactory>()
+            .AddSingleton<Assimp.AssimpContext>()
+            .AddSingleton<ModelFactory>()
             .AddSingleton<AssetLibrary>();
     }
 }

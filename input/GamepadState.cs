@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace input;
 
 [StructLayout(LayoutKind.Sequential)]
-public record struct GamepadState {
+public struct GamepadState {
     public ulong Timestamp { get; set; }
     public GamepadButtons Buttons { get; init; }
     public float LeftTrigger { get; init; }

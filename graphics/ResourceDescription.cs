@@ -3,7 +3,7 @@
 
 //namespace graphics;
 
-//public record struct ResourceDescriptionaaa
+//public record struct ResourceDescription
 //{
 //    public ResourceDimension Dimension { get; init; }
 

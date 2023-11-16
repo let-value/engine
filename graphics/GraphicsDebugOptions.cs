@@ -1,5 +1,5 @@
 ﻿namespace graphics;
 
-public record GraphicsDebugOptions {
+public class GraphicsDebugOptions {
     public bool Validate = false;
 }

@@ -3,7 +3,7 @@ using Vortice.DXGI;
 
 namespace graphics;
 
-public record struct ImageDescription {
+public class ImageDescription {
     public short DepthOrArraySize { get; init; }
     public ResourceDimension Dimension { get; init; }
     public Format Format { get; init; }

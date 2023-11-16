@@ -2,7 +2,7 @@ using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record DepthStencilView : ResourceView {
+public class DepthStencilView : ResourceView {
     public DepthStencilView(
         GraphicsDevice device,
         DescriptorAllocator allocator,

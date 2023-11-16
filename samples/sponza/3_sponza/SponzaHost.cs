@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using assets;
 using rendering;
+using scene;
 
 namespace sample;
 
@@ -11,6 +12,7 @@ public class SponzaHost {
         .ConfigureServices((context, services) => {
             services
                 .AddAssetLibrary()
+                .AddScenes()
                 .AddSingleton<IRenderGraph, SponzaRenderGraph>();
         });
 }

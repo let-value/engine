@@ -2,7 +2,7 @@ using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record GraphicsResource : IDisposable {
+public class GraphicsResource : IDisposable {
     public ResourceDescription Description;
     public ID3D12Resource NativeResource;
 

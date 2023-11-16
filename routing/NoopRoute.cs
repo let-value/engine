@@ -1,6 +1,6 @@
-﻿namespace scene;
+﻿namespace routing;
 
-public class NoopScene : IScene {
+public class NoopRoute : IRoute {
     public void Dispose() {
         // TODO release managed resources here
     }

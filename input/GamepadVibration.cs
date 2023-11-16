@@ -3,7 +3,7 @@
 namespace input;
 
 [StructLayout(LayoutKind.Sequential)]
-public record struct GamepadVibration {
+public struct GamepadVibration {
     public float LeftMotor { get; init; }
     public float RightMotor { get; init; }
     public float LeftTrigger { get; init; }

@@ -5,7 +5,7 @@ using System.Reactive.Linq;
 
 namespace rendering;
 
-public record CommandListRequest : IDisposable {
+public class CommandListRequest : IDisposable {
     public readonly ReactiveProperty<int> Count;
     public readonly ReactiveProperty<CommandListRequest[]?> ChildRequests;
     public readonly ReadOnlyReactiveProperty<int> TotalCount;

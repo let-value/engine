@@ -1,6 +1,4 @@
-﻿using graphics;
-
-namespace rendering;
+﻿namespace rendering;
 
 public class NoopRenderGraph : IRenderGraph {
     public CommandListRequest GetCommandListCount() {

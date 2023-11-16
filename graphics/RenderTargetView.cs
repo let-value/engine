@@ -2,7 +2,7 @@ using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record RenderTargetView : ResourceView {
+public class RenderTargetView : ResourceView {
     public RenderTargetView(
         GraphicsDevice device,
         DescriptorAllocator allocator,

@@ -1,15 +1,18 @@
-﻿namespace assets;
+﻿using assets.assets;
+using Assimp;
 
-public class AssetLibrary(AssetFactory factory) {
-    private readonly Dictionary<object, Asset> Assets = new();
+namespace assets;
 
-    public Asset Load(object key, string path) {
-        if (Assets.TryGetValue(key, out var asset)) {
+public class AssetLibrary(ModelFactory modelFactory) {
+    private readonly Dictionary<object, ModelAsset> Models = new();
+
+    public ModelAsset LoadModel(object key, string path, PostProcessSteps flags = default) {
+        if (Models.TryGetValue(key, out var asset)) {
             return asset;
         }
 
-        var newAsset = factory.Create(path);
-        Assets.Add(key, newAsset);
+        var newAsset = modelFactory.Create(key, path, flags);
+        Models.Add(key, newAsset);
 
         return newAsset;
     }

@@ -2,17 +2,15 @@ using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record struct PipelineState : IDisposable {
-    public ID3D12PipelineState NativePipelineState;
-
-    public PipelineState(
+public class PipelineState(
         GraphicsDevice device,
         GraphicsPipelineStateDescription pipelineStateDescription
-    ) {
-        NativePipelineState = device.NativeDevice.CreateGraphicsPipelineState(pipelineStateDescription);
-    }
+    )
+    : IDisposable {
+    public ID3D12PipelineState NativePipelineState =
+        device.NativeDevice.CreateGraphicsPipelineState(pipelineStateDescription);
 
-    public readonly void Dispose() {
+    public void Dispose() {
         NativePipelineState.Dispose();
     }
 }

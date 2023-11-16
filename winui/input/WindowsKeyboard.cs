@@ -1,8 +1,5 @@
-﻿using System.Reactive.Subjects;
-using input;
+﻿using input;
 using Linearstar.Windows.RawInput;
-using Reactive.Bindings;
-using Vortice.DirectInput;
 
 namespace winui.input;
 

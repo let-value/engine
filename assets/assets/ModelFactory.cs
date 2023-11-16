@@ -2,10 +2,10 @@
 using Assimp;
 using Microsoft.Extensions.FileProviders;
 
-namespace assets;
+namespace assets.assets;
 
-public class AssetFactory(AssimpContext loader) {
-    public Asset Create(string path) {
+public class ModelFactory(AssimpContext loader) {
+    public ModelAsset Create(object key, string path, PostProcessSteps flags = PostProcessSteps.None) {
         var directory = Path.Combine(
             Directory.GetCurrentDirectory(),
             Path.GetDirectoryName(path) ?? throw new InvalidOperationException()
@@ -13,13 +13,14 @@ public class AssetFactory(AssimpContext loader) {
 
         using var fileProvider = new PhysicalFileProvider(directory ?? throw new InvalidOperationException());
 
-        var scene = loader.ImportFile(path);
+        var scene = loader.ImportFile(path, flags);
 
         var textures = LoadTextureImages(scene);
         var materials = LoadMaterials(scene, textures, fileProvider);
         var meshes = LoadMeshes(scene, materials);
 
         return new() {
+            Key = key,
             Scene = scene,
             Textures = textures,
             Materials = materials,
@@ -27,12 +28,12 @@ public class AssetFactory(AssimpContext loader) {
         };
     }
 
-    private IndexedDictionary<string, TextureImageResource> LoadTextureImages(Scene scene) {
+    private IndexedDictionary<string, TextureImageResource> LoadTextureImages(ModelScene scene) {
         return !scene.HasTextures ? new() : throw new NotImplementedException();
     }
 
     private IndexedDictionary<string, MaterialResource> LoadMaterials(
-        Scene scene,
+        ModelScene scene,
         IndexedDictionary<string, TextureImageResource> textures,
         IFileProvider fileProvider
     ) {
@@ -54,10 +55,12 @@ public class AssetFactory(AssimpContext loader) {
                 var ok = textures.TryGetValue(textureSlot.FilePath, out var textureImageResource);
                 if (!ok) {
                     var textureImage = LoadTextureImage(textureSlot, fileProvider);
-                    if (textureImage != null) {
-                        textureImageResource = textureImage;
-                        textures.Add(textureSlot.FilePath, textureImageResource);
+                    if (textureImage == null) {
+                        continue;
                     }
+
+                    textureImageResource = textureImage;
+                    textures.Add(textureSlot.FilePath, textureImageResource);
                 }
 
                 var textureResource = new TextureResource {
@@ -91,7 +94,7 @@ public class AssetFactory(AssimpContext loader) {
     }
 
     private IndexedDictionary<string, MeshResource> LoadMeshes(
-        Scene scene,
+        ModelScene scene,
         IndexedDictionary<string, MaterialResource> materials
     ) {
         if (!scene.HasMeshes) {

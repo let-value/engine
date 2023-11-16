@@ -4,7 +4,7 @@ using Vortice.Direct3D12;
 namespace graphics;
 
 [StructLayout(LayoutKind.Sequential)]
-public record struct CommandList : IDisposable {
+public class CommandList : IDisposable {
     public ID3D12GraphicsCommandList4 NativeCommandList;
     public ID3D12CommandAllocator NativeCommandAllocator;
 

@@ -3,7 +3,7 @@ using Vortice.DXGI;
 
 namespace graphics;
 
-public record Texture : GraphicsResource {
+public class Texture : GraphicsResource {
     //public Texture(GraphicsDevice device, ResourceDescription description, HeapType heapType)
     //    : base(device, description, heapType)
     //{

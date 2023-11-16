@@ -1,24 +1,23 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using rendering;
 
-namespace scene;
+namespace routing;
 
-public class ScenesRenderGraph : IRenderGraph {
-    private readonly SceneManager SceneManager;
-    private ReadOnlyCollection<IScene> ForegroundScenes = null!;
+public class RoutingRenderGraph : IRenderGraph {
+    private readonly RouteManager RouteManager;
+    private ReadOnlyCollection<IRoute> ForegroundScenes = null!;
     private readonly CommandListRequest CommandListRequest;
 
-    public ScenesRenderGraph(SceneManager sceneManager) {
-        SceneManager = sceneManager;
+    public RoutingRenderGraph(RouteManager routeManager) {
+        RouteManager = routeManager;
         CommandListRequest = new(1);
 
-        sceneManager.ForegroundChanged += OnForegroundChanged;
+        routeManager.ForegroundChanged += OnForegroundChanged;
         OnForegroundChanged();
     }
 
     private void OnForegroundChanged(object? sender = null, EventArgs? e = null) {
-        ForegroundScenes = SceneManager.ForegroundScenes
+        ForegroundScenes = RouteManager.ForegroundRoutes
             .Where(x => x.RenderGraph != null)
             .ToList()
             .AsReadOnly();
@@ -42,7 +41,7 @@ public class ScenesRenderGraph : IRenderGraph {
     }
 
     public void Dispose() {
-        SceneManager.ForegroundChanged -= OnForegroundChanged;
+        RouteManager.ForegroundChanged -= OnForegroundChanged;
         CommandListRequest.Dispose();
     }
 }

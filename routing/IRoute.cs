@@ -1,8 +1,8 @@
 ﻿using rendering;
 
-namespace scene;
+namespace routing;
 
-public interface IScene : IDisposable {
+public interface IRoute : IDisposable {
     public bool IsModal => false;
     public IRenderGraph? RenderGraph => default;
 }

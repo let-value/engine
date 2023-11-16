@@ -1,19 +1,12 @@
-﻿using System.Runtime.CompilerServices;
-using Microsoft.Extensions.DependencyInjection;
-using System.Runtime.InteropServices;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record CommandQueue : IDisposable {
-    public ID3D12Fence NativeFence;
-    public ID3D12CommandQueue NativeQueue;
+public class CommandQueue(GraphicsDevice device, CommandListType type) : IDisposable {
+    public ID3D12Fence NativeFence = device.NativeDevice.CreateFence();
+    public ID3D12CommandQueue NativeQueue = device.NativeDevice.CreateCommandQueue(type);
     private ulong NextFenceValue = 1;
-
-    public CommandQueue(GraphicsDevice device, CommandListType type) {
-        NativeFence = device.NativeDevice.CreateFence();
-        NativeQueue = device.NativeDevice.CreateCommandQueue(type);
-    }
 
     public void Dispose() {
         NativeQueue.Dispose();

@@ -3,7 +3,7 @@ using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record DescriptorAllocator : IDisposable {
+public class DescriptorAllocator : IDisposable {
     public const int DescriptorsPerHeap = 4096;
     private readonly object allocatorLock = new();
 

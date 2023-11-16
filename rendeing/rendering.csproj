@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\shared.targets"/>
+	<Import Project="..\shared.targets" />
 
     <ItemGroup>
       <PackageReference Include="ReactiveProperty" Version="9.3.4" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ecs\ecs.csproj" />
+        <ProjectReference Include="..\scene\scene.csproj" />
         <ProjectReference Include="..\graphics\graphics.csproj" />
         <ProjectReference Include="..\input\input.csproj" />
         <ProjectReference Include="..\shader\shader.csproj" />

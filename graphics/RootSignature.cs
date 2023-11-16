@@ -3,7 +3,7 @@ using Vortice.Direct3D12;
 
 namespace graphics;
 
-public record struct RootSignature : IDisposable {
+public class RootSignature : IDisposable {
     public ID3D12RootSignature NativeRootSignature;
 
     public RootSignature(GraphicsDevice device, RootSignatureDescription description) {
@@ -20,7 +20,7 @@ public record struct RootSignature : IDisposable {
         NativeRootSignature = device.NativeDevice.CreateRootSignature(nativeDescription);
     }
 
-    public readonly void Dispose() {
+    public void Dispose() {
         NativeRootSignature.Dispose();
     }
 }

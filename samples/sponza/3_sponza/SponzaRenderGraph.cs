@@ -1,9 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 using assets;
 using Assimp;
-using CommunityToolkit.HighPerformance;
 using graphics;
 using rendering;
+using scene;
 using Vortice.Direct3D12;
 
 namespace sample;
@@ -13,15 +13,14 @@ public class SponzaRenderGraph : IRenderGraph {
     private readonly GraphicsDevice Device;
     private readonly Scene Scene;
 
-    public SponzaRenderGraph(GraphicsDevice device, AssetLibrary assetLibrary) {
+    public SponzaRenderGraph(GraphicsDevice device, AssetLibrary assetLibrary, SceneImporter sceneImporter) {
         Device = device;
 
-        var asset = assetLibrary.Load(Sponza, "Assets/sponza.obj");
+        var asset = assetLibrary.LoadModel(Sponza, "Assets/sponza.obj", PostProcessSteps.GenerateBoundingBoxes);
         Scene = asset.Scene;
 
-        foreach (var mesh in Scene.Meshes) {
-            var buffer = UploadMeshToGPU(mesh);
-        }
+        var sceneRoot = sceneImporter.ImportModelAsset(asset, new());
+        var sceneGraph = new SceneGraph(sceneRoot);
     }
 
     public void Dispose() { }
