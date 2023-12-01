@@ -1,25 +1,14 @@
-﻿using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
-using assets.resources;
-using core;
+﻿using assets.resources;
 using rendering.components;
-using RenderableItemMesh =
-    (sample.Rendering.RenderableItem Item, rendering.components.RenderableMeshComponent Component);
+using RenderableItemMesh = (
+    sample.Rendering.RenderableItem Item,
+    rendering.components.RenderableMeshComponent Component
+    );
 
 namespace sample.Rendering;
 
-public class RenderableCollection {
-    public List<RenderableItem> Items;
-    public ConditionalWeakTable<SceneNode, RenderableItem> Lookup = [];
-
-    public RenderableCollection(ConcurrentBag<RenderableItem> items) {
-        Items = new(items);
-        Lookup = new();
-
-        foreach (var item in items) {
-            Lookup.Add(item.Node, item);
-        }
-    }
+public class RenderableCollection(IEnumerable<RenderableItem> items) {
+    public List<RenderableItem> Items = [..items];
 
     public IEnumerable<RenderableItemMesh> Meshes => Items
         //.AsParallel()

@@ -1,45 +1,44 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Numerics;
 using core;
 using rendering.components;
 
 namespace sample.Rendering;
 
 public static class SceneRenderables {
-    public static RenderableCollection
-        CollectRenderables(SceneNode sceneNode, RenderableCollection? previousCollection) {
-        var concurrentBag = new ConcurrentBag<RenderableItem>();
+    public static RenderableCollection CollectRenderables(SceneNode sceneNode) {
+        var items = new List<RenderableItem>();
 
-        Task.Factory.StartNew(() => Traverse(sceneNode, concurrentBag, previousCollection)).Wait();
+        var transform = Matrix4x4.Identity;
+        Traverse(sceneNode, items, ref transform);
 
-        return new(concurrentBag);
+        return new(items);
     }
 
-    private static void Traverse(SceneNode sceneNode, ConcurrentBag<RenderableItem> bag,
-        RenderableCollection? previousCollection) {
-        Task.Factory.StartNew(() => {
-            var transform = sceneNode.Components.OfType<TransformComponent>().FirstOrDefault();
-            var renderable = sceneNode.Components.OfType<IRenderableComponent>().FirstOrDefault();
+    private static void Traverse(
+        in SceneNode sceneNode,
+        ICollection<RenderableItem> list,
+        ref Matrix4x4 parentTransform
+    ) {
+        var transformComponent = sceneNode.Components.OfType<TransformComponent>().FirstOrDefault();
+        var transform = parentTransform;
+        if (transformComponent is not null) {
+            transform *= transformComponent.Value;
+        }
 
-            if (transform is null || renderable is null) {
-                return;
-            }
+        var renderable = sceneNode.Components.OfType<IRenderableComponent>().FirstOrDefault();
 
-            if (previousCollection?.Lookup.TryGetValue(sceneNode, out var previousItem) ?? false) {
-                bag.Add(previousItem);
-                return;
-            }
-
+        if (renderable is not null) {
             var item = new RenderableItem(
                 in sceneNode,
                 in transform,
                 in renderable
             );
 
-            bag.Add(item);
-        }, TaskCreationOptions.AttachedToParent);
+            list.Add(item);
+        }
 
         foreach (var child in sceneNode.Children) {
-            Task.Factory.StartNew(() => Traverse(child, bag, previousCollection), TaskCreationOptions.AttachedToParent);
+            Traverse(child, list, ref transform);
         }
     }
 }

@@ -29,8 +29,8 @@ public class SceneImporter {
     private ImmutableList<Component>.Builder ConvertAssimpNodeToComponents(ModelAsset asset, Assimp.Node assimpNode) {
         var components = ImmutableList.CreateBuilder<Component>();
 
-        assimpNode.Transform.Decompose(out var scale, out var rotation, out var translation);
-        components.Add(new TransformComponent(scale.ToNumerics(), rotation.ToNumerics(), translation.ToNumerics()));
+
+        components.Add(new TransformComponent(assimpNode.Transform.ToNumerics()));
 
         foreach (var meshIndex in assimpNode.MeshIndices) {
             components.Add(new RenderableMeshComponent(asset.Meshes[meshIndex]));

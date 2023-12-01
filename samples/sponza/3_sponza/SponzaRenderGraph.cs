@@ -22,7 +22,7 @@ public class SponzaRenderGraph : IRenderGraph {
         Scene = asset.Scene;
 
         var sceneGraph = sceneImporter.ImportModelAsset(asset);
-        var renderables = CollectRenderables(sceneGraph, null);
+        var renderables = CollectRenderables(sceneGraph);
 
         var opaque = renderables.Meshes
             .GetOpaqueMeshes()

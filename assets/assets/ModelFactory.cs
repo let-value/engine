@@ -1,6 +1,7 @@
 ﻿using assets.resources;
 using Assimp;
 using Microsoft.Extensions.FileProviders;
+using SixLabors.ImageSharp;
 
 namespace assets.assets;
 

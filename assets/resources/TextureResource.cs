@@ -1,4 +1,6 @@
-﻿namespace assets.resources;
+﻿using SixLabors.ImageSharp;
+
+namespace assets.resources;
 
 public class TextureImageResource {
     public required Image? Image;
