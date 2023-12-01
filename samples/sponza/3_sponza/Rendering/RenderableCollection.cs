@@ -3,9 +3,10 @@ using System.Runtime.CompilerServices;
 using assets.resources;
 using core;
 using rendering.components;
-using RenderableItemMesh = (sample.RenderableItem Item, rendering.components.RenderableMeshComponent Component);
+using RenderableItemMesh =
+    (sample.Rendering.RenderableItem Item, rendering.components.RenderableMeshComponent Component);
 
-namespace sample;
+namespace sample.Rendering;
 
 public class RenderableCollection {
     public List<RenderableItem> Items;

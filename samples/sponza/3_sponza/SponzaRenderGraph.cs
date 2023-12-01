@@ -2,10 +2,11 @@
 using Assimp;
 using graphics;
 using rendering;
+using sample.Rendering;
 using scene;
 using System.Runtime.CompilerServices;
 using Vortice.Direct3D12;
-using static sample.SceneRenderables;
+using static sample.Rendering.SceneRenderables;
 
 namespace sample;
 

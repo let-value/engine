@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\shared.targets"/>
+	<Import Project="..\shared.targets" />
     <ItemGroup>
         <PackageReference Include="Arch" Version="1.2.7" />
         <PackageReference Include="Arch.AOT.SourceGenerator" Version="1.0.0" />
@@ -7,7 +7,7 @@
         <PackageReference Include="Arch.Relationships" Version="1.0.1" />
         <PackageReference Include="Arch.System" Version="1.0.2" />
         <PackageReference Include="Arch.System.SourceGenerator" Version="1.1.2" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0-rc.2.23479.6" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     </ItemGroup>
 
 </Project>

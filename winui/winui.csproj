@@ -2,7 +2,7 @@
 	<Import Project="WinUi.targets" />
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.4.231008000" />
+        <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.4.231115000" />
         <PackageReference Include="RawInput.Sharp" Version="0.1.3" />
         <PackageReference Include="Vortice.WinUI" Version="3.3.4" />
     </ItemGroup>

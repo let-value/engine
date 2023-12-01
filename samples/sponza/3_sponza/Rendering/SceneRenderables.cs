@@ -2,7 +2,7 @@
 using core;
 using rendering.components;
 
-namespace sample;
+namespace sample.Rendering;
 
 public static class SceneRenderables {
     public static RenderableCollection

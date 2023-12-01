@@ -1,7 +1,7 @@
 ﻿using core;
 using rendering.components;
 
-namespace sample;
+namespace sample.Rendering;
 
 public class RenderableItem {
     public SceneNode Node;
