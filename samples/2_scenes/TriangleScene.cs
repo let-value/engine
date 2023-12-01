@@ -1,5 +1,4 @@
 ﻿using rendering;
-using scene;
 
 namespace sample;
 

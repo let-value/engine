@@ -1,10 +1,11 @@
-﻿using System.Runtime.CompilerServices;
-using assets;
+﻿using assets;
 using Assimp;
 using graphics;
 using rendering;
 using scene;
+using System.Runtime.CompilerServices;
 using Vortice.Direct3D12;
+using static sample.SceneRenderables;
 
 namespace sample;
 
@@ -16,11 +17,21 @@ public class SponzaRenderGraph : IRenderGraph {
     public SponzaRenderGraph(GraphicsDevice device, AssetLibrary assetLibrary, SceneImporter sceneImporter) {
         Device = device;
 
-        var asset = assetLibrary.LoadModel(Sponza, "Assets/sponza.obj", PostProcessSteps.GenerateBoundingBoxes);
+        var asset = assetLibrary.LoadModel(Sponza, "Assets/sponza.obj");
         Scene = asset.Scene;
 
-        var sceneRoot = sceneImporter.ImportModelAsset(asset, new());
-        var sceneGraph = new SceneGraph(sceneRoot);
+        var sceneGraph = sceneImporter.ImportModelAsset(asset);
+        var renderables = CollectRenderables(sceneGraph, null);
+
+        var opaque = renderables.Meshes
+            .GetOpaqueMeshes()
+            .GetMaterialMeshes()
+            .ToList();
+
+        var transparent = renderables.Meshes
+            .GetTransparentMeshes()
+            .GetMaterialMeshes()
+            .ToList();
     }
 
     public void Dispose() { }

@@ -1,8 +1,8 @@
-﻿using System.Reactive.Concurrency;
+﻿using input;
+using Reactive.Bindings;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using input;
-using Reactive.Bindings;
 
 namespace winui.input;
 

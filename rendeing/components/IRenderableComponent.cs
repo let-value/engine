@@ -1,3 +1,3 @@
-﻿namespace scene.components;
+﻿namespace rendering.components;
 
 public interface IRenderableComponent { }

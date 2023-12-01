@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using SharpGen.Runtime;
+﻿using SharpGen.Runtime;
+using System.Runtime.InteropServices;
 using Vortice.Dxc;
 
 namespace shader;

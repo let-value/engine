@@ -13,7 +13,7 @@ public class ModelFactory(AssimpContext loader) {
 
         using var fileProvider = new PhysicalFileProvider(directory ?? throw new InvalidOperationException());
 
-        var scene = loader.ImportFile(path, flags);
+        var scene = loader.ImportFile(path, flags | PostProcessSteps.GenerateBoundingBoxes);
 
         var textures = LoadTextureImages(scene);
         var materials = LoadMaterials(scene, textures, fileProvider);

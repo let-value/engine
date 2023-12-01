@@ -1,7 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
-using input;
+﻿using input;
 using Linearstar.Windows.RawInput;
+using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace winui.input;
 

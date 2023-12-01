@@ -1,6 +1,6 @@
-﻿using Windows.Gaming.Input;
-using input;
+﻿using input;
 using System.Collections.Concurrent;
+using Windows.Gaming.Input;
 
 namespace winui.input;
 

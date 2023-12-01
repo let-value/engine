@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Hosting;
-using graphics;
+﻿using graphics;
+using input;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
 using rendering;
 using rendering.loop;
-using Microsoft.UI.Dispatching;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using input;
-using Microsoft.UI.Xaml;
 using winui.input;
 using winui.rendering;
 

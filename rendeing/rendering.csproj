@@ -6,10 +6,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\scene\scene.csproj" />
+        <ProjectReference Include="..\assets\assets.csproj" />
         <ProjectReference Include="..\graphics\graphics.csproj" />
         <ProjectReference Include="..\input\input.csproj" />
         <ProjectReference Include="..\shader\shader.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="scene\" />
     </ItemGroup>
 
 </Project>

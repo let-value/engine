@@ -2,5 +2,7 @@
 	<Import Project="..\shared.targets" />
 	<ItemGroup>
 	  <ProjectReference Include="..\assets\assets.csproj" />
+	  <ProjectReference Include="..\core\core.csproj" />
+	  <ProjectReference Include="..\rendeing\rendering.csproj" />
 	</ItemGroup>
 </Project>

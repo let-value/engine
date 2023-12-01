@@ -1,7 +1,7 @@
-using System.Drawing;
 using graphics;
 using Microsoft.Extensions.Options;
 using rendering.loop;
+using System.Drawing;
 using Vortice.Direct3D12;
 using Vortice.DXGI;
 using Vortice.Mathematics;
