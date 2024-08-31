@@ -4,13 +4,12 @@ using Microsoft.Extensions.Logging;
 using window;
 
 var host = new HostBuilder()
-    .ConfigureServices((services) => 
-        services
-            .AddLogging(services => services.AddConsole().AddDebug())
-            .AddSingleton<MainWindow>()
-            .AddSingleton<App>()
-            .AddSingleton(WpfServiceExtensions.AddLazy<App>))
-    .UseWpf<App>()
+    .ConfigureServices(services => services
+        .AddLogging(logging => logging.AddConsole().AddDebug())
+        .AddSingleton<App>()
+        .AddSingleton<MainWindow>()
+        .AddSingleton(HostingServiceExtensions.AddLazy<App>)
+        .AddHostedService<WinUiService<App>>())
     .Build();
 
 await host.RunAsync();
