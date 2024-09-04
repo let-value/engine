@@ -2,15 +2,16 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using window;
+using static window.HostingServiceExtensions;
 
 var host = new HostBuilder()
     .ConfigureServices(services => services
         .AddLogging(logging => logging.AddConsole().AddDebug())
         .AddSingleton<App>()
         .AddSingleton<MainWindow>()
-        .AddSingleton(HostingServiceExtensions.AddLazy<App>)
-        .AddSingleton(HostingServiceExtensions.AddLazy<MainWindow>)
-        .AddHostedService<WinUiService<App>>())
+        .AddSingleton(AddLazy<App>)
+        .AddSingleton(AddLazy<MainWindow>)
+        .AddHostedService<Ui>())
     .Build();
 
 await host.RunAsync();

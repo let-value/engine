@@ -20,7 +20,10 @@ public class WinUiService<TApplication>(
     ILogger<WinUiService<TApplication>> logger,
     IHostApplicationLifetime lifeTime
 ) : IHostedService where TApplication : Application {
-    private DispatcherQueue? queue;
+
+    public TApplication? Application;
+    public DispatcherQueue? Queue;
+    public DispatcherQueueSynchronizationContext? Context;
 
     public Task StartAsync(CancellationToken cancellationToken) {
         logger.LogDebug("Starting WinUI");
@@ -35,8 +38,8 @@ public class WinUiService<TApplication>(
     public Task StopAsync(CancellationToken cancellationToken) {
         logger.LogDebug("Stopping WinUI");
 
-        application.Value.UnhandledException -= OnAppOnUnhandledException;
-        queue?.TryEnqueue(application.Value.Exit);
+        Queue?.TryEnqueue(Application.Exit);
+        Application.UnhandledException -= OnAppOnUnhandledException;
 
         return Task.CompletedTask;
     }
@@ -45,17 +48,22 @@ public class WinUiService<TApplication>(
         XamlHelper.XamlCheckProcessRequirements();
         WinRT.ComWrappersSupport.InitializeComWrappers();
 
-        Application.Start(StartCallback);
-        lifeTime.StopApplication();
+        try {
+            Microsoft.UI.Xaml.Application.Start(StartCallback);
+        }
+        finally {
+            lifeTime.StopApplication();
+        }
     }
 
-    void StartCallback(ApplicationInitializationCallbackParams _) {
-        queue = DispatcherQueue.GetForCurrentThread();
-        var context = new DispatcherQueueSynchronizationContext(queue);
-        SynchronizationContext.SetSynchronizationContext(context);
+    void StartCallback(ApplicationInitializationCallbackParams props) {
+        Queue = DispatcherQueue.GetForCurrentThread();
+        Context = new DispatcherQueueSynchronizationContext(Queue);
 
-        var app = application.Value;
-        app.UnhandledException += OnAppOnUnhandledException;
+        SynchronizationContext.SetSynchronizationContext(Context);
+
+        Application = application.Value;
+        Application.UnhandledException += OnAppOnUnhandledException;
     }
 
     private void OnAppOnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) {
@@ -65,6 +73,6 @@ public class WinUiService<TApplication>(
 }
 
 public static class HostingServiceExtensions {
-    public static Lazy<TService> AddLazy<TService>(this IServiceProvider provider) =>
-        new(() => provider.GetService<TService>());
+    public static Lazy<TService> AddLazy<TService>(IServiceProvider provider) =>
+        new(() => provider.GetService<TService>()!);
 }
